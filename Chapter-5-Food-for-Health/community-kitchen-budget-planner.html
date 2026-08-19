@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Kitchen Budget Planner — Class 4 TWAU</title>
+<style>
+  :root{
+    --bodybuild:#e0563a;
+    --energy:#f0a93a;
+    --protective:#4caf6d;
+    --junk:#7a3060;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+    --gold:#c9922e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:14px;
+  }
+
+  .topbar{
+    width:100%;
+    max-width:920px;
+    display:flex;
+    gap:14px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:12px 20px;
+    margin-bottom:16px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .budget-wrap{
+    flex:1 1 260px;
+    max-width:340px;
+  }
+  .budget-label{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    font-weight:700;
+    color:#6b5a3a;
+    margin-bottom:4px;
+  }
+  .budget-track{
+    width:100%;
+    height:18px;
+    background:#f3ead2;
+    border-radius:20px;
+    overflow:hidden;
+    border:2px solid #f0dcb4;
+  }
+  .budget-fill{
+    height:100%;
+    background:linear-gradient(90deg, #4caf6d, #f0a93a, #e0563a);
+    border-radius:20px;
+    transition:width .4s ease;
+  }
+  .turn-indicator{
+    text-align:center;
+    padding:6px 16px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:13.5px;
+    background:#fff1cf;
+    color:#7a3b0a;
+  }
+  .finalize-btn{
+    font-size:15px;
+    font-weight:800;
+    padding:10px 22px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+  .finalize-btn:active{ transform:translateY(3px); box-shadow:0 2px 0 #a4560a; }
+
+  .layout{
+    display:flex;
+    gap:24px;
+    width:100%;
+    max-width:920px;
+    align-items:flex-start;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+
+  .catalog{
+    flex:2 1 480px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .catalog-group{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:12px 14px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .catalog-group .glabel{
+    font-weight:800;
+    font-size:13px;
+    padding:3px 10px;
+    border-radius:20px;
+    color:#fff;
+    display:inline-block;
+    margin-bottom:10px;
+  }
+  .catalog-group.bodybuild .glabel{ background:var(--bodybuild); }
+  .catalog-group.energy .glabel{ background:var(--energy); }
+  .catalog-group.protective .glabel{ background:var(--protective); }
+  .catalog-group.junk .glabel{ background:var(--junk); }
+
+  .item-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .item-btn{
+    width:78px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    padding:8px 6px;
+    border-radius:12px;
+    border:2px solid #f0dcb4;
+    background:#fff;
+    cursor:pointer;
+    transition:transform .1s ease, background .15s ease, opacity .15s ease;
+  }
+  .item-btn .iEmoji{ font-size:24px; }
+  .item-btn .iName{ font-size:10px; font-weight:700; color:#5a4a2e; text-align:center; line-height:1.15; min-height:24px; }
+  .item-btn .iCost{ font-size:11px; font-weight:800; color:var(--gold); }
+  .item-btn:hover{ transform:translateY(-2px); background:#fff1cf; }
+  .item-btn.selected{ background:#e9f7ee; border-color:var(--protective); }
+  .item-btn.unaffordable{ opacity:0.4; cursor:not-allowed; }
+  .item-btn.unaffordable:hover{ transform:none; background:#fff; }
+
+  .menu-panel{
+    flex:1 1 260px;
+    max-width:320px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .menu-card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .menu-card h2{margin:0 0 8px; font-size:15px; color:#7a3b0a;}
+  .menu-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height:260px;
+    overflow-y:auto;
+  }
+  .menu-empty{ font-size:12.5px; color:#b3a685; font-style:italic; }
+  .menu-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:12.5px;
+    background:#f7f0da;
+    border-radius:8px;
+    padding:5px 8px;
+  }
+  .menu-item .miLeft{ display:flex; align-items:center; gap:6px; }
+  .menu-item .miCost{ font-weight:700; color:var(--gold); }
+
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:920px;
+    width:100%;
+    margin-top:16px;
+  }
+  .card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    margin-top:16px;
+  }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(58,43,26,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay .box{
+    background:#fffdf7;
+    border-radius:20px;
+    padding:26px 30px;
+    text-align:center;
+    max-width:400px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .overlay h2{margin:4px 0 6px; color:#7a3b0a; font-size:20px;}
+  .overlay .stars{ font-size:26px; letter-spacing:3px; margin-bottom:4px; }
+  .overlay .scoreLine{ font-size:14px; font-weight:700; color:#6b5a3a; margin-bottom:10px; }
+  .overlay .breakdown{
+    text-align:left;
+    background:#f3ead2;
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:12.5px;
+    line-height:1.6;
+    margin-bottom:10px;
+  }
+  .overlay p{margin:6px 0; color:#5a4a2e; font-size:14px; line-height:1.5;}
+  .overlay button{
+    margin-top:10px;
+    font-size:16px;
+    font-weight:700;
+    padding:10px 26px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:10px;height:14px;
+    border-radius:2px;
+    z-index:150;
+    pointer-events:none;
+  }
+
+  @media (max-width:700px){
+    .layout{ flex-direction:column; align-items:center; }
+    .catalog, .menu-panel{ max-width:92vw; }
+  }
+</style>
+</head>
+<body>
+
+  <h1>🍲 Community Kitchen Budget Planner</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health</div>
+
+  <div class="topbar">
+    <div class="budget-wrap">
+      <div class="budget-label"><span>💰 Health Budget</span><span id="budgetText">100 / 100 left</span></div>
+      <div class="budget-track"><div class="budget-fill" id="budgetFill" style="width:100%"></div></div>
+    </div>
+    <div class="turn-indicator" id="turnIndicator">Team A's turn to add a food</div>
+    <button class="finalize-btn" onclick="finalizeMenu()">✅ Finalize Today's Menu</button>
+  </div>
+
+  <div class="layout">
+    <div class="catalog">
+      <div class="catalog-group bodybuild">
+        <div class="glabel">💪 Body-Building</div>
+        <div class="item-grid" id="grid-bodybuild"></div>
+      </div>
+      <div class="catalog-group energy">
+        <div class="glabel">⚡ Energy-Giving</div>
+        <div class="item-grid" id="grid-energy"></div>
+      </div>
+      <div class="catalog-group protective">
+        <div class="glabel">🛡️ Protective</div>
+        <div class="item-grid" id="grid-protective"></div>
+      </div>
+      <div class="catalog-group junk">
+        <div class="glabel">💸 Treats &amp; Junk Food (expensive!)</div>
+        <div class="item-grid" id="grid-junk"></div>
+      </div>
+    </div>
+
+    <div class="menu-panel">
+      <div class="menu-card">
+        <h2>📋 Today's Class Menu</h2>
+        <div class="menu-list" id="menuList">
+          <div class="menu-empty">No items added yet — start building the menu!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👩‍🏫 How to Play</h2>
+    <ul>
+      <li>Teams take turns adding ONE food item to the class's daily menu.</li>
+      <li>Healthy foods cost very little from the budget — junk food costs a lot!</li>
+      <li>You have only 100 health budget points for the whole day — spend wisely.</li>
+      <li>Try to include foods from all three healthy groups before the budget runs out.</li>
+      <li>When ready, tap <b>Finalize Today's Menu</b> to see your Community Kitchen Rating.</li>
+    </ul>
+  </div>
+
+  <button class="reset-link" onclick="resetGame()">↺ Reset the kitchen</button>
+
+<script>
+const CATALOG = {
+  bodybuild: [
+    { name:"Boiled Eggs", emoji:"🥚", cost:10 },
+    { name:"Dal (Lentils)", emoji:"🍲", cost:8 },
+    { name:"Paneer", emoji:"🧀", cost:12 },
+    { name:"Sprouts", emoji:"🌱", cost:7 },
+  ],
+  energy: [
+    { name:"Rice", emoji:"🍚", cost:6 },
+    { name:"Roti", emoji:"🫓", cost:6 },
+    { name:"Banana", emoji:"🍌", cost:5 },
+    { name:"Sweet Potato", emoji:"🍠", cost:7 },
+  ],
+  protective: [
+    { name:"Mixed Vegetables", emoji:"🥦", cost:7 },
+    { name:"Salad", emoji:"🥗", cost:5 },
+    { name:"Orange", emoji:"🍊", cost:6 },
+    { name:"Carrot Sticks", emoji:"🥕", cost:5 },
+  ],
+  junk: [
+    { name:"Soft Drink", emoji:"🥤", cost:22 },
+    { name:"Chips", emoji:"🍟", cost:25 },
+    { name:"Candy", emoji:"🍬", cost:18 },
+    { name:"Burger", emoji:"🍔", cost:30 },
+    { name:"Pizza Slice", emoji:"🍕", cost:28 },
+    { name:"Fried Samosa", emoji:"🥟", cost:20 },
+  ],
+};
+
+const TOTAL_BUDGET = 100;
+let remaining = TOTAL_BUDGET;
+let menu = [];
+let activeTeam = "A";
+
+function buildCatalog(){
+  Object.keys(CATALOG).forEach(groupKey => {
+    const grid = document.getElementById('grid-' + groupKey);
+    grid.innerHTML = '';
+    CATALOG[groupKey].forEach((item, idx) => {
+      const btn = document.createElement('div');
+      btn.className = 'item-btn';
+      btn.id = 'item-' + groupKey + '-' + idx;
+      btn.innerHTML = `<div class="iEmoji">${item.emoji}</div><div class="iName">${item.name}</div><div class="iCost">${item.cost} pts</div>`;
+      btn.addEventListener('click', () => addItem(groupKey, idx, btn));
+      grid.appendChild(btn);
+    });
+  });
+}
+
+function addItem(groupKey, idx, btn){
+  const item = CATALOG[groupKey][idx];
+  if(item.cost > remaining){
+    btn.classList.add('unaffordable');
+    setTimeout(() => btn.classList.remove('unaffordable'), 500);
+    return;
+  }
+
+  remaining -= item.cost;
+  menu.push({ ...item, group: groupKey });
+  updateBudget();
+  renderMenu();
+  refreshAffordability();
+
+  activeTeam = activeTeam === 'A' ? 'B' : 'A';
+  document.getElementById('turnIndicator').textContent = `Team ${activeTeam}'s turn to add a food`;
+}
+
+function refreshAffordability(){
+  Object.keys(CATALOG).forEach(groupKey => {
+    CATALOG[groupKey].forEach((item, idx) => {
+      const btn = document.getElementById('item-' + groupKey + '-' + idx);
+      if(item.cost > remaining){
+        btn.classList.add('unaffordable');
+      } else {
+        btn.classList.remove('unaffordable');
+      }
+    });
+  });
+}
+
+function updateBudget(){
+  const pct = Math.max(0, Math.round((remaining / TOTAL_BUDGET) * 100));
+  document.getElementById('budgetFill').style.width = pct + '%';
+  document.getElementById('budgetText').textContent = remaining + ' / ' + TOTAL_BUDGET + ' left';
+}
+
+function renderMenu(){
+  const list = document.getElementById('menuList');
+  if(menu.length === 0){
+    list.innerHTML = '<div class="menu-empty">No items added yet — start building the menu!</div>';
+    return;
+  }
+  list.innerHTML = menu.map(it =>
+    `<div class="menu-item"><span class="miLeft">${it.emoji} ${it.name}</span><span class="miCost">-${it.cost}</span></div>`
+  ).join('');
+}
+
+function finalizeMenu(){
+  const groupsCovered = new Set(menu.filter(i => i.group !== 'junk').map(i => i.group));
+  const healthyCount = menu.filter(i => i.group !== 'junk').length;
+  const junkCount = menu.filter(i => i.group === 'junk').length;
+
+  const raw = groupsCovered.size * 20 + Math.min(healthyCount, 10) * 4 - junkCount * 15;
+  const pct = Math.max(0, Math.min(100, raw));
+
+  let stars, ratingLabel, tip;
+  if(pct >= 80){
+    stars = '⭐⭐⭐⭐⭐'; ratingLabel = 'Outstanding Community Kitchen!';
+    tip = "A brilliantly balanced menu — plenty of variety across all food groups with little to no junk food.";
+  } else if(pct >= 60){
+    stars = '⭐⭐⭐⭐'; ratingLabel = 'Great Menu!';
+    tip = "A healthy, well-balanced day overall. See if you could stretch the budget to cover one more food group.";
+  } else if(pct >= 40){
+    stars = '⭐⭐⭐'; ratingLabel = 'Good Effort';
+    tip = "A decent menu, but either the junk food ate into your budget, or a food group got left out.";
+  } else if(pct >= 20){
+    stars = '⭐⭐'; ratingLabel = 'Needs Improvement';
+    tip = "Too much of the budget went to expensive treats, leaving little room for real nutrition.";
+  } else {
+    stars = '⭐'; ratingLabel = 'Junk Food Takeover!';
+    tip = "This menu is mostly junk food — expensive AND unhealthy! Try again with more fruits, vegetables and grains.";
+  }
+
+  const groupNames = { bodybuild:"Body-Building", energy:"Energy-Giving", protective:"Protective" };
+  const coveredList = Array.from(groupsCovered).map(g => groupNames[g]).join(', ') || 'None';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="box">
+      <div class="stars">${stars}</div>
+      <h2>${ratingLabel}</h2>
+      <div class="scoreLine">Community Kitchen Score: ${pct} / 100</div>
+      <div class="breakdown">
+        💰 Budget spent: ${TOTAL_BUDGET - remaining} / ${TOTAL_BUDGET}<br>
+        🥗 Food groups covered: ${coveredList}<br>
+        🍽️ Healthy items: ${healthyCount} &nbsp;|&nbsp; 💸 Junk items: ${junkCount}
+      </div>
+      <p>${tip}</p>
+      <button onclick="resetGame(); this.closest('.overlay').remove();">Plan a New Day</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  if(pct >= 60) launchConfetti();
+}
+
+function launchConfetti(){
+  const colors = ['#4caf6d','#e0563a','#f0a93a','#4fc3f7','#9575cd'];
+  for(let i=0;i<70;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${2+Math.random()*1.5}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+const styleTag = document.createElement('style');
+styleTag.textContent = `@keyframes fall{ to { transform: translateY(105vh) rotate(360deg); opacity:0.9; } }`;
+document.head.appendChild(styleTag);
+
+function resetGame(){
+  remaining = TOTAL_BUDGET;
+  menu = [];
+  activeTeam = "A";
+  document.getElementById('turnIndicator').textContent = "Team A's turn to add a food";
+  updateBudget();
+  renderMenu();
+  buildCatalog();
+  refreshAffordability();
+}
+
+resetGame();
+</script>
+</body>
+</html>

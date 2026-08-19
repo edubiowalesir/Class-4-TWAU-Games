@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Millet Explorer — Class 4 TWAU</title>
+<style>
+  :root{
+    --gold:#c9922e;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+    --c1:#e0563a;
+    --c2:#f0a93a;
+    --c3:#4caf6d;
+    --c4:#4fc3f7;
+    --c5:#9575cd;
+    --c6:#f06292;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  h1{
+    font-size:clamp(22px,3.4vw,36px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,16px);
+    color:#6b5a3a;
+    margin-bottom:14px;
+  }
+
+  .scoreboard{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:10px 20px;
+    margin-bottom:18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .team{
+    text-align:center;
+    padding:4px 14px;
+  }
+  .team .label{font-size:13px; font-weight:700; color:#7a3b0a;}
+  .team .val{font-size:24px; font-weight:800;}
+  .team-buttons{display:flex; gap:6px; justify-content:center; margin-top:4px;}
+  .team-buttons button{
+    border:none;
+    border-radius:8px;
+    padding:5px 9px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:13px;
+  }
+  .plus{background:#c8e6c9; color:#1b5e20;}
+  .minus{background:#ffcdd2; color:#b71c1c;}
+  .progress-pill{
+    font-size:13px;
+    color:#6b5a3a;
+    font-weight:700;
+    background:#f3ead2;
+    padding:6px 14px;
+    border-radius:20px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(150px,220px));
+    gap:20px;
+    max-width:800px;
+    width:100%;
+    justify-content:center;
+    perspective:1000px;
+  }
+
+  .flip-card{
+    height:200px;
+    cursor:pointer;
+  }
+  .flip-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+    transition:transform .6s;
+    transform-style:preserve-3d;
+  }
+  .flip-card.flipped .flip-inner{
+    transform:rotateY(180deg);
+  }
+  .flip-face{
+    position:absolute;
+    inset:0;
+    border-radius:18px;
+    backface-visibility:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:10px;
+    text-align:center;
+    box-shadow:0 8px 16px rgba(90,60,10,0.22);
+  }
+  .flip-front{
+    background:repeating-linear-gradient(135deg, #f7e6bd, #f7e6bd 10px, #f2dca0 10px, #f2dca0 20px);
+    border:3px solid #e0c07a;
+  }
+  .flip-front .qmark{
+    font-size:44px;
+    color:#a97c2c;
+    font-weight:800;
+  }
+  .flip-front .cardNo{
+    font-size:12px;
+    color:#8a6f3d;
+    margin-top:4px;
+    font-weight:700;
+  }
+  .flip-back{
+    transform:rotateY(180deg);
+    color:#fff;
+    gap:4px;
+  }
+  .flip-back .grainEmoji{ font-size:38px; }
+  .flip-back .grainName{ font-size:16px; font-weight:800; }
+  .flip-back .grainHindi{ font-size:12px; font-style:italic; opacity:0.9; margin-bottom:2px;}
+  .flip-back .grainFact{
+    font-size:11px;
+    line-height:1.35;
+    background:rgba(255,255,255,0.18);
+    border-radius:8px;
+    padding:5px 7px;
+    margin-top:4px;
+  }
+  .flip-back b{display:block; font-size:11px; opacity:0.85; margin-top:2px;}
+
+  .card1{background:linear-gradient(160deg,var(--c1),#b8422b);}
+  .card2{background:linear-gradient(160deg,var(--c2),#c07f1a);}
+  .card3{background:linear-gradient(160deg,var(--c3),#357a4c);}
+  .card4{background:linear-gradient(160deg,var(--c4),#2e8bb0);}
+  .card5{background:linear-gradient(160deg,var(--c5),#6a4ea8);}
+  .card6{background:linear-gradient(160deg,var(--c6),#c04570);}
+
+  .bottom-card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 20px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:700px;
+    width:100%;
+    margin-top:22px;
+  }
+  .bottom-card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .bottom-card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    margin-top:16px;
+  }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(58,43,26,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay .box{
+    background:#fffdf7;
+    border-radius:20px;
+    padding:28px 32px;
+    text-align:center;
+    max-width:360px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .overlay h2{margin:0 0 8px; color:#7a3b0a; font-size:22px;}
+  .overlay p{margin:6px 0; color:#5a4a2e; font-size:15px;}
+  .overlay button{
+    margin-top:14px;
+    font-size:16px;
+    font-weight:700;
+    padding:10px 26px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:10px;height:14px;
+    border-radius:2px;
+    z-index:150;
+    pointer-events:none;
+  }
+
+  @media (max-width:640px){
+    .grid{ grid-template-columns:repeat(2, minmax(130px,180px)); }
+  }
+</style>
+</head>
+<body>
+
+  <h1>🌾 Millet Explorer</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health — "A Stall of Super Food"</div>
+
+  <div class="scoreboard">
+    <div class="team">
+      <div class="label">Team A</div>
+      <div class="val" id="valA">0</div>
+      <div class="team-buttons">
+        <button class="plus" onclick="changeScore('A',1)">+1</button>
+        <button class="minus" onclick="changeScore('A',-1)">-1</button>
+      </div>
+    </div>
+    <div class="progress-pill" id="progressPill">0 of 6 cards explored</div>
+    <div class="team">
+      <div class="label">Team B</div>
+      <div class="val" id="valB">0</div>
+      <div class="team-buttons">
+        <button class="plus" onclick="changeScore('B',1)">+1</button>
+        <button class="minus" onclick="changeScore('B',-1)">-1</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="bottom-card">
+    <h2>👩‍🏫 How to Play</h2>
+    <ul>
+      <li>Before flipping a card, the active team <b>guesses</b> the grain hidden underneath — or which season it is eaten in.</li>
+      <li>Tap the card to flip it and reveal the grain's name, season, dish and a fun fact.</li>
+      <li>If the team's guess was correct, the teacher taps <b>+1</b> for that team.</li>
+      <li>Explore all 6 cards to complete the "Super Food Stall" — a small celebration appears when all are found!</li>
+      <li>Tap a flipped card again to turn it back face-down.</li>
+    </ul>
+  </div>
+
+  <button class="reset-link" onclick="resetGame()">↺ Reset game</button>
+
+<script>
+const GRAINS = [
+  { name:"Jowar", hindi:"ज्वार (Sorghum)", emoji:"🌾", season:"Grown in both Kharif &amp; Rabi", dish:"Jowar roti / bhakri", fact:"Gluten-free and rich in fibre", cls:"card1" },
+  { name:"Bajra", hindi:"बाजरा (Pearl Millet)", emoji:"🌾", season:"Winter season", dish:"Bajra roti", fact:"Keeps the body warm in winter", cls:"card2" },
+  { name:"Ragi", hindi:"रागी (Finger Millet)", emoji:"🌾", season:"Grown almost all year", dish:"Ragi dosa / porridge", fact:"Very rich in calcium for strong bones", cls:"card3" },
+  { name:"Jau", hindi:"जौ (Barley)", emoji:"🌾", season:"Summer season", dish:"Jau ki roti / sattu", fact:"Cooling for the body in hot weather", cls:"card4" },
+  { name:"Rice", hindi:"चावल (Chawal)", emoji:"🍚", season:"Monsoon (Kharif) season", dish:"Steamed rice / khichdi", fact:"A staple food for most of India", cls:"card5" },
+  { name:"Wheat", hindi:"गेहूं (Gehun)", emoji:"🌾", season:"Winter (Rabi) season", dish:"Chapati / roti", fact:"The most common flour in North India", cls:"card6" },
+];
+
+let scores = { A:0, B:0 };
+let exploredCount = 0;
+const exploredSet = new Set();
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function buildGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  shuffle(GRAINS).forEach((g, idx) => {
+    const card = document.createElement('div');
+    card.className = 'flip-card';
+    card.dataset.name = g.name;
+
+    card.innerHTML = `
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="qmark">?</div>
+          <div class="cardNo">Card ${idx + 1}</div>
+        </div>
+        <div class="flip-face flip-back ${g.cls}">
+          <div class="grainEmoji">${g.emoji}</div>
+          <div class="grainName">${g.name}</div>
+          <div class="grainHindi">${g.hindi}</div>
+          <div class="grainFact">
+            <b>Season</b>${g.season}
+            <b>Dish</b>${g.dish}
+            <b>Fun fact</b>${g.fact}
+          </div>
+        </div>
+      </div>
+    `;
+
+    card.addEventListener('click', () => {
+      card.classList.toggle('flipped');
+      if(card.classList.contains('flipped') && !exploredSet.has(g.name)){
+        exploredSet.add(g.name);
+        exploredCount = exploredSet.size;
+        updateProgress();
+        if(exploredCount === GRAINS.length){
+          setTimeout(showComplete, 500);
+        }
+      }
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+function updateProgress(){
+  document.getElementById('progressPill').textContent = exploredCount + ' of ' + GRAINS.length + ' cards explored';
+}
+
+function changeScore(team, delta){
+  scores[team] = Math.max(0, scores[team] + delta);
+  document.getElementById('val' + team).textContent = scores[team];
+}
+
+function showComplete(){
+  const winner = scores.A === scores.B ? "It's a tie — great teamwork!" :
+    (scores.A > scores.B ? "🏆 Team A wins!" : "🏆 Team B wins!");
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="box">
+      <h2>Super Food Stall Complete! 🎉</h2>
+      <p>You explored all 6 grains — jowar, bajra, ragi, jau, rice and wheat.</p>
+      <p>Team A: <b>${scores.A}</b> &nbsp;|&nbsp; Team B: <b>${scores.B}</b></p>
+      <p style="font-size:18px; font-weight:800; color:#7a3b0a;">${winner}</p>
+      <button onclick="resetGame(); this.closest('.overlay').remove();">Play Again</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  launchConfetti();
+}
+
+function launchConfetti(){
+  const colors = ['#e0563a','#f0a93a','#4caf6d','#4fc3f7','#9575cd','#f06292'];
+  for(let i=0;i<70;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${2+Math.random()*1.5}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+const styleTag = document.createElement('style');
+styleTag.textContent = `@keyframes fall{ to { transform: translateY(105vh) rotate(360deg); opacity:0.9; } }`;
+document.head.appendChild(styleTag);
+
+function resetGame(){
+  scores = { A:0, B:0 };
+  exploredSet.clear();
+  exploredCount = 0;
+  document.getElementById('valA').textContent = 0;
+  document.getElementById('valB').textContent = 0;
+  updateProgress();
+  buildGrid();
+}
+
+buildGrid();
+</script>
+</body>
+</html>

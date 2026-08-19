@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journey of a Grain — Class 4 TWAU</title>
+<style>
+  :root{
+    --sky:#bfe6ff;
+    --sky2:#e8f7ff;
+    --earth:#b98a4f;
+    --earth2:#8a6234;
+    --ink:#3a2b1a;
+    --gold:#c9922e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, #fff7e6, #fdeecb 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:16px;
+  }
+
+  .stage-wrap{
+    width:100%;
+    max-width:720px;
+  }
+
+  .stage{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/10;
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 14px 30px rgba(90,60,10,0.28);
+    border:6px solid #fffdf7;
+  }
+
+  .scene{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .5s ease;
+  }
+  .scene.active{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  /* shared sky/ground base */
+  .scene .sky{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, var(--sky), var(--sky2) 60%);
+  }
+  .scene .ground{
+    position:absolute; left:0; right:0; bottom:0; height:34%;
+    background:linear-gradient(180deg, #c9a06a, var(--earth) 40%, var(--earth2));
+  }
+  .scene .sun{
+    position:absolute; top:8%; right:10%;
+    width:52px; height:52px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff6cf, #ffcf4d 70%);
+    box-shadow:0 0 26px 10px rgba(255,207,77,0.55);
+    animation:pulse 3s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.08);} }
+
+  .cloud{
+    position:absolute;
+    font-size:30px;
+    animation:drift 14s linear infinite;
+    opacity:0.9;
+  }
+  @keyframes drift{
+    from{ transform:translateX(-40px); }
+    to{ transform:translateX(650px); }
+  }
+
+  .emoji-el{
+    position:absolute;
+    font-size:44px;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,0.25));
+  }
+
+  .caption-strip{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    background:rgba(58,43,26,0.72);
+    color:#fff;
+    padding:10px 16px;
+    font-size:14px;
+    text-align:center;
+    backdrop-filter:blur(1px);
+  }
+  .caption-strip b{ display:block; font-size:16px; margin-bottom:2px; color:#ffe4a3; }
+
+  /* Scene 1: Sowing */
+  #scene1 .farmer{ left:20%; bottom:36%; animation:walk 3s ease-in-out infinite; }
+  #scene1 .ox{ left:12%; bottom:34%; font-size:40px; animation:walk 3s ease-in-out infinite; }
+  #scene1 .seed{ left:42%; bottom:37%; font-size:20px; animation:drop 1.6s ease-in-out infinite; }
+  @keyframes walk{ 0%,100%{ transform:translateX(0);} 50%{ transform:translateX(18px);} }
+  @keyframes drop{ 0%{ opacity:0; transform:translateY(-10px);} 50%{ opacity:1; transform:translateY(0);} 100%{ opacity:0; transform:translateY(10px);} }
+
+  /* Scene 2: Growing */
+  #scene2 .plant{ left:46%; bottom:36%; font-size:10px; animation:grow 3s ease-in-out infinite alternate; transform-origin:bottom center; }
+  @keyframes grow{ from{ transform:scale(1); font-size:26px;} to{ transform:scale(1.4); font-size:50px;} }
+  #scene2 .rain{ left:60%; top:20%; font-size:26px; animation:fall 2.2s linear infinite; }
+  @keyframes fall{ 0%{ transform:translateY(0); opacity:1;} 100%{ transform:translateY(120px); opacity:0.2;} }
+
+  /* Scene 3: Harvesting */
+  #scene3 .farmerH{ left:30%; bottom:36%; font-size:44px; animation:chop 1.4s ease-in-out infinite; }
+  @keyframes chop{ 0%,100%{ transform:rotate(0deg);} 50%{ transform:rotate(-14deg);} }
+  #scene3 .field{ left:55%; bottom:36%; font-size:40px; }
+
+  /* Scene 4: Transport */
+  #scene4 .cart{ left:6%; bottom:33%; font-size:48px; animation:driveCart 6s linear infinite; }
+  @keyframes driveCart{ from{ transform:translateX(0);} to{ transform:translateX(430px);} }
+
+  /* Scene 5: Mill/Market */
+  #scene5 .mill{ left:20%; bottom:34%; font-size:48px; }
+  #scene5 .sackA{ left:44%; bottom:34%; font-size:38px; }
+  #scene5 .sackB{ left:58%; bottom:34%; font-size:38px; }
+  #scene5 .seller{ left:74%; bottom:36%; font-size:44px; }
+
+  /* Scene 6: Cooking */
+  #scene6 .mother{ left:34%; bottom:34%; font-size:46px; }
+  #scene6 .pot{ left:52%; bottom:34%; font-size:42px; }
+  #scene6 .steam{ left:55%; bottom:52%; font-size:22px; animation:steamRise 1.8s ease-in-out infinite; }
+  @keyframes steamRise{ 0%{ opacity:0; transform:translateY(0);} 40%{ opacity:0.9;} 100%{ opacity:0; transform:translateY(-24px);} }
+
+  /* Scene 7: Gratitude table */
+  #scene7 .family{ left:24%; bottom:34%; font-size:42px; }
+  #scene7 .plate{ left:47%; bottom:36%; font-size:34px; }
+  #scene7 .heart{ left:50%; top:16%; font-size:30px; animation:floatHeart 2.4s ease-in-out infinite; }
+  @keyframes floatHeart{ 0%,100%{ transform:translateY(0) scale(1); opacity:0.85;} 50%{ transform:translateY(-14px) scale(1.15); opacity:1;} }
+
+  .controls{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    margin-top:16px;
+  }
+  .nav-btn{
+    font-size:22px;
+    width:46px; height:46px;
+    border-radius:50%;
+    border:none;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .nav-btn:active{ transform:translateY(3px); box-shadow:0 2px 0 #a4560a; }
+  .nav-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  .dots{ display:flex; gap:8px; }
+  .dot{
+    width:11px; height:11px; border-radius:50%;
+    background:#e6d3a3;
+    cursor:pointer;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .dot.active{ background:var(--gold); transform:scale(1.25); }
+
+  .autoplay-row{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13.5px;
+    color:#6b5a3a;
+  }
+  .autoplay-row input{ transform:scale(1.15); }
+
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:700px;
+    width:100%;
+    margin-top:20px;
+  }
+  .card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+</style>
+</head>
+<body>
+
+  <h1>🌾 Journey of a Grain</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health — From Farm to Plate</div>
+
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+
+      <div class="scene active" id="scene1">
+        <div class="sky"></div>
+        <div class="sun"></div>
+        <div class="cloud" style="top:10%;">☁️</div>
+        <div class="ground"></div>
+        <div class="emoji-el ox">🐂</div>
+        <div class="emoji-el farmer">🧑‍🌾</div>
+        <div class="emoji-el seed">🌱</div>
+        <div class="caption-strip"><b>1. Sowing the Seed</b>The farmer ploughs the field with the help of bullocks, then sows tiny seeds in the soil.</div>
+      </div>
+
+      <div class="scene" id="scene2">
+        <div class="sky"></div>
+        <div class="sun"></div>
+        <div class="cloud" style="top:14%;">☁️</div>
+        <div class="ground"></div>
+        <div class="emoji-el" style="left:16%; bottom:38%; font-size:34px;">🌧️</div>
+        <div class="emoji-el rain">💧</div>
+        <div class="emoji-el plant">🌾</div>
+        <div class="caption-strip"><b>2. Growing Under the Sun &amp; Rain</b>Sunshine, rain and the farmer's daily care help the tiny seed grow into a tall grain crop.</div>
+      </div>
+
+      <div class="scene" id="scene3">
+        <div class="sky"></div>
+        <div class="sun"></div>
+        <div class="ground"></div>
+        <div class="emoji-el field">🌾🌾🌾</div>
+        <div class="emoji-el farmerH">🧑‍🌾</div>
+        <div class="caption-strip"><b>3. Harvesting</b>When the crop is golden and ripe, farmers work hard together to cut and gather the grain.</div>
+      </div>
+
+      <div class="scene" id="scene4">
+        <div class="sky"></div>
+        <div class="sun"></div>
+        <div class="cloud" style="top:12%;">☁️</div>
+        <div class="ground"></div>
+        <div class="emoji-el cart">🐄🛒</div>
+        <div class="caption-strip"><b>4. Threshing &amp; Transport</b>The grain is separated from the husk, filled into sacks, and carried by bullock cart or truck to the market or mill.</div>
+      </div>
+
+      <div class="scene" id="scene5">
+        <div class="sky"></div>
+        <div class="ground"></div>
+        <div class="emoji-el mill">🏭</div>
+        <div class="emoji-el sackA">🌾</div>
+        <div class="emoji-el sackB">🍚</div>
+        <div class="emoji-el seller">🧑‍🌾</div>
+        <div class="caption-strip"><b>5. At the Mill &amp; Market</b>Workers clean and mill the grain, and sellers bring it to the market so it can reach every home.</div>
+      </div>
+
+      <div class="scene" id="scene6">
+        <div class="sky"></div>
+        <div class="ground"></div>
+        <div class="emoji-el mother">👩‍🍳</div>
+        <div class="emoji-el pot">🍲</div>
+        <div class="emoji-el steam">💨</div>
+        <div class="caption-strip"><b>6. Cooking at Home</b>At last, the grain reaches our kitchen, where a family member cooks it with love into a tasty meal.</div>
+      </div>
+
+      <div class="scene" id="scene7">
+        <div class="sky"></div>
+        <div class="ground"></div>
+        <div class="emoji-el heart">💛</div>
+        <div class="emoji-el family">🧑‍🤝‍🧑</div>
+        <div class="emoji-el plate">🍛</div>
+        <div class="caption-strip"><b>7. Gratitude at the Table</b>Before we eat, let's remember the farmer, the animals, and every worker whose effort brought this food to our plate. Say thank you! 🙏</div>
+      </div>
+
+    </div>
+
+    <div class="controls">
+      <button class="nav-btn" id="prevBtn" onclick="changeScene(-1)">◀</button>
+      <div class="dots" id="dots"></div>
+      <button class="nav-btn" id="nextBtn" onclick="changeScene(1)">▶</button>
+    </div>
+
+    <div class="autoplay-row">
+      <input type="checkbox" id="autoplayToggle" onchange="toggleAutoplay(this.checked)">
+      <label for="autoplayToggle">Auto-play scenes (advances every 5 seconds)</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👩‍🏫 How to Use in Class</h2>
+    <ul>
+      <li>Play each scene aloud as a story — ask students to name who is helping at each stage (farmer, ox, mill worker, seller, mother/family).</li>
+      <li>Pause on Scene 7 and ask: "Who should we thank before we eat our food?" — link to the chapter's gratitude theme.</li>
+      <li>Use the dots below the stage to jump straight to any scene for a quick recap.</li>
+      <li>Turn on auto-play for a hands-free classroom viewing, or click through manually for a guided discussion.</li>
+    </ul>
+  </div>
+
+<script>
+const TOTAL_SCENES = 7;
+let current = 1;
+let autoplayHandle = null;
+
+function buildDots(){
+  const dotsEl = document.getElementById('dots');
+  dotsEl.innerHTML = '';
+  for(let i=1;i<=TOTAL_SCENES;i++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : '');
+    d.addEventListener('click', () => goToScene(i));
+    dotsEl.appendChild(d);
+  }
+}
+
+function updateStage(){
+  document.querySelectorAll('.scene').forEach((s) => s.classList.remove('active'));
+  document.getElementById('scene' + current).classList.add('active');
+  document.querySelectorAll('.dot').forEach((d, idx) => {
+    d.classList.toggle('active', idx + 1 === current);
+  });
+  document.getElementById('prevBtn').disabled = (current === 1);
+}
+
+function goToScene(n){
+  current = Math.max(1, Math.min(TOTAL_SCENES, n));
+  updateStage();
+}
+
+function changeScene(delta){
+  let next = current + delta;
+  if(next > TOTAL_SCENES) next = 1;
+  if(next < 1) next = TOTAL_SCENES;
+  current = next;
+  updateStage();
+}
+
+function toggleAutoplay(on){
+  if(on){
+    autoplayHandle = setInterval(() => changeScene(1), 5000);
+  } else {
+    clearInterval(autoplayHandle);
+  }
+}
+
+buildDots();
+updateStage();
+</script>
+</body>
+</html>

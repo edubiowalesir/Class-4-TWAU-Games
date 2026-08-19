@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Your Balanced Thali — Class 4 TWAU</title>
+<style>
+  :root{
+    --protective:#4caf6d;
+    --bodybuild:#e0563a;
+    --energy:#f0a93a;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  h1{
+    font-size:clamp(22px,3.4vw,36px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,16px);
+    color:#6b5a3a;
+    margin-bottom:16px;
+  }
+
+  .layout{
+    display:flex;
+    gap:30px;
+    width:100%;
+    max-width:1100px;
+    align-items:flex-start;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+
+  .plate-area{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+  }
+  .plate-wrap{
+    position:relative;
+    width:min(72vw,380px);
+    height:min(72vw,380px);
+  }
+  #plate{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background:conic-gradient(
+      var(--protective) 0deg 180deg,
+      var(--bodybuild) 180deg 288deg,
+      var(--energy) 288deg 360deg
+    );
+    border:8px solid #fffdf7;
+    box-shadow:0 10px 24px rgba(90,60,10,0.3), inset 0 0 0 2px #e6d3a3;
+    position:relative;
+  }
+  .plate-labels{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  .plate-label{
+    position:absolute;
+    font-size:12.5px;
+    font-weight:800;
+    color:#fff;
+    text-shadow:0 1px 3px rgba(0,0,0,0.35);
+    text-align:center;
+    line-height:1.25;
+  }
+  .lbl-protective{ top:50%; left:76%; transform:translate(-50%,-50%); }
+  .lbl-bodybuild{ top:68%; left:27%; transform:translate(-50%,-50%); }
+  .lbl-energy{ top:26%; left:35%; transform:translate(-50%,-50%); }
+
+  .placed-chip{
+    position:absolute;
+    font-size:26px;
+    transform:translate(-50%,-50%);
+    z-index:5;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+  }
+
+  .check-btn{
+    font-size:18px;
+    font-weight:700;
+    padding:12px 32px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 6px 0 #a4560a;
+  }
+  .check-btn:active{ transform:translateY(3px); box-shadow:0 3px 0 #a4560a; }
+
+  .counts{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .count-pill{
+    font-size:12.5px;
+    font-weight:700;
+    padding:5px 12px;
+    border-radius:20px;
+    color:#fff;
+  }
+  .count-pill.protective{background:var(--protective);}
+  .count-pill.bodybuild{background:var(--bodybuild);}
+  .count-pill.energy{background:var(--energy);}
+
+  .side-panel{
+    flex:1 1 320px;
+    max-width:400px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .card h2{margin:0 0 10px; font-size:16px; color:#7a3b0a;}
+  .tray{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px 12px;
+    justify-content:center;
+  }
+  .tray-chip{
+    width:64px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+    cursor:grab;
+    touch-action:none;
+    transition:transform .1s ease;
+  }
+  .tray-chip.dragging{ cursor:grabbing; z-index:30; }
+  .tray-chip .iconBox{
+    width:56px;
+    height:56px;
+    background:#fff;
+    border-radius:14px;
+    border:2px solid #f0dcb4;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    box-shadow:0 4px 8px rgba(0,0,0,0.12);
+    pointer-events:none;
+  }
+  .tray-chip .chipName{
+    font-size:10.5px;
+    font-weight:700;
+    color:#6b5a3a;
+    white-space:nowrap;
+    text-align:center;
+    pointer-events:none;
+  }
+
+  .legend{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    font-size:13px;
+  }
+  .legend-row{ display:flex; align-items:center; gap:8px; }
+  .dot{ width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+  .dot.protective{background:var(--protective);}
+  .dot.bodybuild{background:var(--bodybuild);}
+  .dot.energy{background:var(--energy);}
+
+  .instructions{
+    font-size:13.5px;
+    line-height:1.55;
+    color:#5a4a2e;
+    margin:0;
+    padding-left:20px;
+  }
+  .instructions li{margin-bottom:4px;}
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    align-self:center;
+  }
+
+  .feedback-box{
+    min-height:26px;
+    font-weight:700;
+    font-size:15px;
+    text-align:center;
+  }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(58,43,26,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay .box{
+    background:#fffdf7;
+    border-radius:20px;
+    padding:28px 32px;
+    text-align:center;
+    max-width:380px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .overlay h2{margin:0 0 10px; color:#7a3b0a; font-size:22px;}
+  .overlay p{margin:6px 0; color:#5a4a2e; font-size:15px; line-height:1.5;}
+  .overlay button{
+    margin-top:14px;
+    font-size:16px;
+    font-weight:700;
+    padding:10px 26px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:10px;height:14px;
+    border-radius:2px;
+    z-index:150;
+    pointer-events:none;
+  }
+
+  @media (max-width:700px){
+    .layout{ flex-direction:column; align-items:center; }
+    .side-panel{ max-width:92vw; }
+  }
+</style>
+</head>
+<body>
+
+  <h1>🍛 Build Your Balanced Thali</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health</div>
+
+  <div class="layout">
+    <div class="plate-area">
+      <div class="plate-wrap">
+        <div id="plate">
+          <div class="plate-labels">
+            <div class="plate-label lbl-protective">PROTECTIVE<br>foods most</div>
+            <div class="plate-label lbl-bodybuild">BODY-<br>BUILDING</div>
+            <div class="plate-label lbl-energy">ENERGY<br>some</div>
+          </div>
+        </div>
+      </div>
+      <div class="counts">
+        <div class="count-pill protective">Protective: <span id="cntP">0</span></div>
+        <div class="count-pill bodybuild">Body-Building: <span id="cntB">0</span></div>
+        <div class="count-pill energy">Energy: <span id="cntE">0</span></div>
+      </div>
+      <div class="feedback-box" id="feedback"></div>
+      <button class="check-btn" onclick="checkThali()">✅ Check My Thali</button>
+      <button class="reset-link" onclick="resetGame()">↺ Clear plate &amp; start over</button>
+    </div>
+
+    <div class="side-panel">
+      <div class="card">
+        <h2>🍽️ Food Tray — drag onto the plate</h2>
+        <div class="tray" id="tray"></div>
+      </div>
+
+      <div class="card">
+        <h2>🎨 Plate Zones</h2>
+        <div class="legend">
+          <div class="legend-row"><span class="dot protective"></span> Protective — fruits &amp; vegetables (fights disease)</div>
+          <div class="legend-row"><span class="dot bodybuild"></span> Body-Building — pulses, milk, eggs (grow strong)</div>
+          <div class="legend-row"><span class="dot energy"></span> Energy-Giving — rice, potato, honey (gives power)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>👩‍🏫 How to Play</h2>
+        <ol class="instructions">
+          <li>Drag each food chip from the tray onto the matching zone of the plate.</li>
+          <li>A balanced thali has <b>protective foods the most</b>, then body-building foods, and only some energy foods — just like in the chapter.</li>
+          <li>Drop a chip on the wrong zone and it will bounce back — try the correct zone!</li>
+          <li>Once you've placed several chips, tap <b>Check My Thali</b> to see if your plate is balanced.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+<script>
+const FOODS = [
+  { name:"Carrot", emoji:"🥕", group:"protective" },
+  { name:"Orange", emoji:"🍊", group:"protective" },
+  { name:"Tomato", emoji:"🍅", group:"protective" },
+  { name:"Spinach", emoji:"🥬", group:"protective" },
+  { name:"Lemon", emoji:"🍋", group:"protective" },
+  { name:"Cabbage", emoji:"🥦", group:"protective" },
+  { name:"Egg", emoji:"🥚", group:"bodybuild" },
+  { name:"Milk", emoji:"🥛", group:"bodybuild" },
+  { name:"Peanuts", emoji:"🥜", group:"bodybuild" },
+  { name:"Fish", emoji:"🐟", group:"bodybuild" },
+  { name:"Beans", emoji:"🫘", group:"bodybuild" },
+  { name:"Cheese", emoji:"🧀", group:"bodybuild" },
+  { name:"Rice", emoji:"🍚", group:"energy" },
+  { name:"Potato", emoji:"🥔", group:"energy" },
+  { name:"Banana", emoji:"🍌", group:"energy" },
+  { name:"Honey", emoji:"🍯", group:"energy" },
+  { name:"Maize", emoji:"🌽", group:"energy" },
+  { name:"Apple", emoji:"🍎", group:"energy" },
+];
+
+let placedCounts = { protective:0, bodybuild:0, energy:0 };
+let dragging = false;
+let dragEl = null;
+let dragFood = null;
+let offsetX = 0, offsetY = 0;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function buildTray(){
+  const tray = document.getElementById('tray');
+  tray.innerHTML = '';
+  shuffle(FOODS).forEach((f,idx)=>{
+    const chip = document.createElement('div');
+    chip.className = 'tray-chip';
+    chip.dataset.name = f.name;
+    chip.dataset.group = f.group;
+    chip.dataset.emoji = f.emoji;
+
+    const iconBox = document.createElement('div');
+    iconBox.className = 'iconBox';
+    iconBox.textContent = f.emoji;
+
+    const nameTag = document.createElement('div');
+    nameTag.className = 'chipName';
+    nameTag.textContent = f.name;
+
+    chip.appendChild(iconBox);
+    chip.appendChild(nameTag);
+    chip.addEventListener('pointerdown', onPointerDown);
+    tray.appendChild(chip);
+  });
+}
+
+function onPointerDown(e){
+  dragging = true;
+  dragEl = e.currentTarget;
+  dragFood = { name: dragEl.dataset.name, group: dragEl.dataset.group, emoji: dragEl.dataset.emoji };
+  dragEl.classList.add('dragging');
+  const rect = dragEl.getBoundingClientRect();
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+  dragEl.style.position = 'fixed';
+  dragEl.style.left = rect.left + 'px';
+  dragEl.style.top = rect.top + 'px';
+  dragEl.style.margin = '0';
+  dragEl.setPointerCapture(e.pointerId);
+}
+
+function onPointerMove(e){
+  if(!dragging || !dragEl) return;
+  dragEl.style.left = (e.clientX - offsetX) + 'px';
+  dragEl.style.top = (e.clientY - offsetY) + 'px';
+}
+
+function wedgeFromPoint(clientX, clientY){
+  const plate = document.getElementById('plate');
+  const r = plate.getBoundingClientRect();
+  const cx = r.left + r.width/2;
+  const cy = r.top + r.height/2;
+  const dx = clientX - cx;
+  const dy = clientY - cy;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const radius = r.width/2;
+  if(dist > radius) return null;
+
+  let angle = Math.atan2(dy, dx) * 180/Math.PI;
+  let cssAngle = (angle + 90 + 360) % 360;
+
+  let group;
+  if(cssAngle < 180) group = 'protective';
+  else if(cssAngle < 288) group = 'bodybuild';
+  else group = 'energy';
+
+  return { group, cx, cy, dx, dy, dist };
+}
+
+function onPointerUp(e){
+  if(!dragging || !dragEl) return;
+  dragging = false;
+  dragEl.classList.remove('dragging');
+
+  const hit = wedgeFromPoint(e.clientX, e.clientY);
+
+  if(hit && hit.group === dragFood.group){
+    placeOnPlate(dragFood, e.clientX, e.clientY, hit);
+    dragEl.remove();
+    setFeedback('✅ ' + dragFood.name + ' placed correctly!', 'correct');
+  } else if(hit){
+    setFeedback('❌ Try a different zone for ' + dragFood.name + '.', 'wrong');
+    snapBack(dragEl);
+  } else {
+    snapBack(dragEl);
+  }
+  dragEl = null;
+  dragFood = null;
+}
+
+function snapBack(el){
+  el.style.transition = 'left .25s ease, top .25s ease';
+  el.style.position = 'relative';
+  el.style.left = '';
+  el.style.top = '';
+  setTimeout(()=>{ if(el) el.style.transition=''; }, 260);
+}
+
+function placeOnPlate(food, clientX, clientY, hit){
+  const plate = document.getElementById('plate');
+  const r = plate.getBoundingClientRect();
+  const localX = clientX - r.left;
+  const localY = clientY - r.top;
+
+  const chip = document.createElement('div');
+  chip.className = 'placed-chip';
+  chip.textContent = food.emoji;
+  chip.style.left = localX + 'px';
+  chip.style.top = localY + 'px';
+  chip.title = food.name;
+  plate.appendChild(chip);
+
+  placedCounts[food.group]++;
+  updateCounts();
+}
+
+function updateCounts(){
+  document.getElementById('cntP').textContent = placedCounts.protective;
+  document.getElementById('cntB').textContent = placedCounts.bodybuild;
+  document.getElementById('cntE').textContent = placedCounts.energy;
+}
+
+function setFeedback(text, type){
+  const el = document.getElementById('feedback');
+  el.textContent = text;
+  el.style.color = type === 'correct' ? '#2f7a49' : '#c0392b';
+  setTimeout(()=>{ if(el.textContent === text) el.textContent = ''; }, 1600);
+}
+
+function checkThali(){
+  const { protective, bodybuild, energy } = placedCounts;
+  const total = protective + bodybuild + energy;
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+
+  let title, msg;
+  if(total === 0){
+    title = 'Empty plate! 🍽️';
+    msg = 'Drag some food chips onto the plate first, then check again.';
+  } else if(protective === 0 || bodybuild === 0 || energy === 0){
+    title = 'Almost there! 🤔';
+    msg = 'A balanced thali needs a bit of all three groups. You are missing at least one food group — add it and check again.';
+  } else if(protective >= bodybuild && bodybuild >= energy){
+    title = 'Balanced Thali! 🎉';
+    msg = 'Well done! Your plate has the most protective foods, some body-building foods, and a little energy food — just like the chapter says.';
+    launchConfetti();
+  } else {
+    title = 'Good try! 🙂';
+    msg = 'Your thali has all three food groups, but remember: protective foods should be the largest part of the plate, followed by body-building, then energy foods.';
+  }
+
+  overlay.innerHTML = `
+    <div class="box">
+      <h2>${title}</h2>
+      <p>${msg}</p>
+      <p style="font-size:13px; color:#8a7a52;">Protective: ${protective} &nbsp;|&nbsp; Body-Building: ${bodybuild} &nbsp;|&nbsp; Energy: ${energy}</p>
+      <button onclick="this.closest('.overlay').remove();">Keep Building</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function launchConfetti(){
+  const colors = ['#4caf6d','#e0563a','#f0a93a','#4fc3f7','#9575cd'];
+  for(let i=0;i<70;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${2+Math.random()*1.5}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+const styleTag = document.createElement('style');
+styleTag.textContent = `@keyframes fall{ to { transform: translateY(105vh) rotate(360deg); opacity:0.9; } }`;
+document.head.appendChild(styleTag);
+
+function resetGame(){
+  placedCounts = { protective:0, bodybuild:0, energy:0 };
+  document.querySelectorAll('.placed-chip').forEach(el => el.remove());
+  updateCounts();
+  buildTray();
+  const fb = document.getElementById('feedback');
+  fb.textContent = '';
+}
+
+window.addEventListener('pointermove', onPointerMove);
+window.addEventListener('pointerup', onPointerUp);
+
+buildTray();
+</script>
+</body>
+</html>

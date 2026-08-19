@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Junk Food Traffic Light Sorter — Class 4 TWAU</title>
+<style>
+  :root{
+    --red:#e53935;
+    --yellow:#f4b400;
+    --green:#43a047;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:14px;
+  }
+
+  .scoreboard{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:10px 20px;
+    margin-bottom:14px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .team-score{
+    text-align:center;
+    padding:4px 14px;
+    border-radius:10px;
+    transition:background .25s ease, transform .25s ease;
+  }
+  .team-score .label{font-size:13px; font-weight:700; color:#7a3b0a;}
+  .team-score .val{font-size:24px; font-weight:800;}
+  .team-score.active{background:#fff1cf; transform:scale(1.06);}
+  .cards-left{
+    font-size:12.5px;
+    color:#6b5a3a;
+    font-weight:700;
+    background:#f3ead2;
+    padding:6px 14px;
+    border-radius:20px;
+  }
+
+  .layout{
+    display:flex;
+    gap:26px;
+    width:100%;
+    max-width:1020px;
+    align-items:flex-start;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+
+  .stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+    flex:1 1 480px;
+  }
+
+  .traffic-light{
+    display:flex;
+    gap:14px;
+    background:#3a3a3a;
+    border-radius:20px;
+    padding:10px 20px;
+    box-shadow:0 8px 16px rgba(0,0,0,0.3);
+  }
+  .bulb{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    opacity:0.28;
+    transition:opacity .2s ease, box-shadow .2s ease;
+  }
+  .bulb.red{background:var(--red);}
+  .bulb.yellow{background:var(--yellow);}
+  .bulb.green{background:var(--green);}
+  .bulb.lit{opacity:1; box-shadow:0 0 18px 4px currentColor;}
+  .bulb.red.lit{color:var(--red);}
+  .bulb.yellow.lit{color:var(--yellow);}
+  .bulb.green.lit{color:var(--green);}
+
+  #currentCard{
+    width:150px;
+    height:170px;
+    background:#ffffff;
+    border-radius:18px;
+    border:3px solid #f0dcb4;
+    box-shadow:0 8px 18px rgba(90,60,10,0.25);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:56px;
+    gap:8px;
+    cursor:grab;
+    touch-action:none;
+    position:relative;
+    z-index:20;
+  }
+  #currentCard.dragging{ cursor:grabbing; box-shadow:0 16px 30px rgba(90,60,10,0.35); }
+  #currentCard .foodName{ font-size:16px; font-weight:700; color:#5a4a2e; }
+  .drag-hint{ font-size:13px; color:#8a7a52; font-style:italic; }
+
+  .zones{
+    display:flex;
+    gap:14px;
+    width:100%;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .zone{
+    width:200px;
+    min-height:130px;
+    border-radius:18px;
+    border:3px dashed;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding:10px 8px;
+    transition:transform .15s ease;
+  }
+  .zone.hover{ transform:scale(1.05); }
+  .zone .zoneIcon{ font-size:28px; }
+  .zone .zoneTitle{ font-weight:800; font-size:14px; text-align:center; margin-top:2px; }
+  .zone .zoneSub{ font-size:11px; text-align:center; color:#5a4a2e; margin-bottom:6px; }
+  .zone-collected{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    justify-content:center;
+  }
+  .zone-collected span{
+    font-size:20px;
+    background:#fff;
+    border-radius:8px;
+    padding:2px 4px;
+    box-shadow:0 2px 4px rgba(0,0,0,0.15);
+  }
+
+  .zone.zone-green{border-color:var(--green); background:#e9f7ee;}
+  .zone.zone-yellow{border-color:var(--yellow); background:#fef8e3;}
+  .zone.zone-red{border-color:var(--red); background:#fdeaea;}
+  .zone.zone-green .zoneTitle{color:#2f7a49;}
+  .zone.zone-yellow .zoneTitle{color:#9c7a09;}
+  .zone.zone-red .zoneTitle{color:#a1281f;}
+
+  .side-panel{
+    flex:1 1 300px;
+    max-width:360px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .card ul, .card ol{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+  .card li{margin-bottom:4px;}
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    align-self:center;
+    margin-top:6px;
+  }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(58,43,26,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay .box{
+    background:#fffdf7;
+    border-radius:20px;
+    padding:26px 30px;
+    text-align:center;
+    max-width:380px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .overlay .box.why-red{border-top:8px solid var(--red);}
+  .overlay .box.why-yellow{border-top:8px solid var(--yellow);}
+  .overlay .box.why-green{border-top:8px solid var(--green);}
+  .overlay .whyEmoji{ font-size:44px; }
+  .overlay h2{margin:8px 0 4px; color:#7a3b0a; font-size:20px;}
+  .overlay .result-tag{
+    font-weight:800;
+    font-size:14px;
+    padding:3px 12px;
+    border-radius:20px;
+    display:inline-block;
+    margin-bottom:8px;
+    color:#fff;
+  }
+  .overlay .result-tag.ok{background:#43a047;}
+  .overlay .result-tag.no{background:#e53935;}
+  .overlay p{margin:6px 0; color:#5a4a2e; font-size:14.5px; line-height:1.5;}
+  .overlay button{
+    margin-top:14px;
+    font-size:16px;
+    font-weight:700;
+    padding:10px 26px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+
+  .final-box p{margin:6px 0;}
+
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:10px;height:14px;
+    border-radius:2px;
+    z-index:150;
+    pointer-events:none;
+  }
+
+  @media (max-width:700px){
+    .layout{ flex-direction:column; align-items:center; }
+    .side-panel{ max-width:92vw; }
+    .zone{ width:44%; min-width:150px; }
+  }
+</style>
+</head>
+<body>
+
+  <h1>🚦 Junk Food Traffic Light</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health — "Say No to Junk Food"</div>
+
+  <div class="scoreboard">
+    <div class="team-score" id="scoreA">
+      <div class="label">Team A</div>
+      <div class="val" id="valA">0</div>
+    </div>
+    <div class="cards-left" id="cardsLeft">14 foods left</div>
+    <div class="team-score" id="scoreB">
+      <div class="label">Team B</div>
+      <div class="val" id="valB">0</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="stage">
+      <div class="traffic-light" id="trafficLight">
+        <div class="bulb red" id="bulbRed"></div>
+        <div class="bulb yellow" id="bulbYellow"></div>
+        <div class="bulb green" id="bulbGreen"></div>
+      </div>
+
+      <div id="currentCard">
+        <div id="cardEmoji">🍎</div>
+        <div class="foodName" id="cardName">Apple</div>
+      </div>
+      <div class="drag-hint">👆 Drag this food into Green, Yellow or Red</div>
+
+      <div class="zones">
+        <div class="zone zone-green" data-zone="green">
+          <div class="zoneIcon">🟢</div>
+          <div class="zoneTitle">Eat Often</div>
+          <div class="zoneSub">Healthy, everyday food</div>
+          <div class="zone-collected" id="collect-green"></div>
+        </div>
+        <div class="zone zone-yellow" data-zone="yellow">
+          <div class="zoneIcon">🟡</div>
+          <div class="zoneTitle">Eat Sometimes</div>
+          <div class="zoneSub">Fine occasionally</div>
+          <div class="zone-collected" id="collect-yellow"></div>
+        </div>
+        <div class="zone zone-red" data-zone="red">
+          <div class="zoneIcon">🔴</div>
+          <div class="zoneTitle">Avoid</div>
+          <div class="zoneSub">Unhealthy junk food</div>
+          <div class="zone-collected" id="collect-red"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <div class="card">
+        <h2>👩‍🏫 How to Play</h2>
+        <ol>
+          <li>Teams take turns dragging the food card into Green, Yellow or Red.</li>
+          <li>After every choice, a <b>"Why?"</b> pop-up explains whether it was right and why.</li>
+          <li>Correct zone → <b>+10 points</b> for the active team.</li>
+          <li>Turn passes to the other team after each choice, right or wrong.</li>
+          <li>Sort all 14 foods to finish — see which team made the healthiest choices!</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h2>🚦 What the Lights Mean</h2>
+        <ul>
+          <li><b>🟢 Green — Eat Often:</b> Fruits, vegetables, milk — good for everyday health.</li>
+          <li><b>🟡 Yellow — Eat Sometimes:</b> Sweets and fried snacks — fine occasionally, not daily.</li>
+          <li><b>🔴 Red — Avoid:</b> Packaged, fried and sugary junk food — best avoided.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <button class="reset-link" onclick="resetGame()">↺ Reset game</button>
+
+<script>
+const FOODS = [
+  { name:"Apple", emoji:"🍎", zone:"green", why:"Fruits like apple give vitamins and fibre that keep your body healthy every day." },
+  { name:"Carrot", emoji:"🥕", zone:"green", why:"Vegetables like carrot protect your body from diseases — a protective food." },
+  { name:"Spinach", emoji:"🥬", zone:"green", why:"Leafy greens are rich in iron and vitamins — great for everyday meals." },
+  { name:"Milk", emoji:"🥛", zone:"green", why:"Milk helps build strong bones and teeth — perfect for daily drinking." },
+  { name:"Banana", emoji:"🍌", zone:"green", why:"A natural fruit full of energy and nutrients — a healthy everyday snack." },
+  { name:"Cake", emoji:"🍰", zone:"yellow", why:"Cake is tasty but full of sugar — best kept for special occasions only." },
+  { name:"Biscuits", emoji:"🍪", zone:"yellow", why:"Biscuits have sugar and refined flour — okay sometimes, not every day." },
+  { name:"Ice Cream", emoji:"🍦", zone:"yellow", why:"A cool treat, but too much sugar isn't good if eaten too often." },
+  { name:"Papad", emoji:"🫓", zone:"yellow", why:"Fried or roasted occasionally is fine, but not as an everyday food." },
+  { name:"Chips", emoji:"🍟", zone:"red", why:"Packaged and fried snacks are high in salt and unhealthy fat." },
+  { name:"Soft Drink", emoji:"🥤", zone:"red", why:"Soft drinks are full of sugar with almost no real nutrition — best avoided." },
+  { name:"Burger", emoji:"🍔", zone:"red", why:"Fast food is high in unhealthy fat, salt and preservatives." },
+  { name:"Pizza", emoji:"🍕", zone:"red", why:"Extra cheese and processed toppings make this a junk-food treat, not a regular meal." },
+  { name:"Candy", emoji:"🍬", zone:"red", why:"Candy is almost pure sugar — bad for teeth and health if eaten often." },
+];
+
+let deck = [];
+let currentIndex = 0;
+let scores = { A:0, B:0 };
+let activeTeam = "A";
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function loadCard(){
+  const card = document.getElementById('currentCard');
+  if(currentIndex >= deck.length){
+    showEnd();
+    return;
+  }
+  const f = deck[currentIndex];
+  document.getElementById('cardEmoji').textContent = f.emoji;
+  document.getElementById('cardName').textContent = f.name;
+  document.getElementById('cardsLeft').textContent = (deck.length - currentIndex) + " foods left";
+  card.style.left = '';
+  card.style.top = '';
+  card.style.position = 'relative';
+  clearBulbs();
+}
+
+function updateScoreboard(){
+  document.getElementById('valA').textContent = scores.A;
+  document.getElementById('valB').textContent = scores.B;
+  document.getElementById('scoreA').classList.toggle('active', activeTeam === 'A');
+  document.getElementById('scoreB').classList.toggle('active', activeTeam === 'B');
+}
+
+function addToZone(zone, emoji){
+  const el = document.getElementById('collect-' + zone);
+  const span = document.createElement('span');
+  span.textContent = emoji;
+  el.appendChild(span);
+}
+
+function switchTeam(){
+  activeTeam = activeTeam === 'A' ? 'B' : 'A';
+  updateScoreboard();
+}
+
+function clearBulbs(){
+  document.getElementById('bulbRed').classList.remove('lit');
+  document.getElementById('bulbYellow').classList.remove('lit');
+  document.getElementById('bulbGreen').classList.remove('lit');
+}
+
+function litBulbFor(zone){
+  clearBulbs();
+  const map = { red:'bulbRed', yellow:'bulbYellow', green:'bulbGreen' };
+  document.getElementById(map[zone]).classList.add('lit');
+}
+
+function handleDrop(zone){
+  const food = deck[currentIndex];
+  const correct = (zone === food.zone);
+
+  litBulbFor(food.zone);
+
+  if(correct){
+    scores[activeTeam] += 10;
+  }
+  addToZone(food.zone, food.emoji);
+
+  showWhyPopup(food, correct);
+}
+
+function showWhyPopup(food, correct){
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  const boxClass = food.zone === 'red' ? 'why-red' : (food.zone === 'yellow' ? 'why-yellow' : 'why-green');
+  const tagClass = correct ? 'ok' : 'no';
+  const tagText = correct ? '✅ Correct choice!' : "❌ Not quite — here's why";
+  const zoneLabel = food.zone === 'green' ? 'Eat Often (Green)' : (food.zone === 'yellow' ? 'Eat Sometimes (Yellow)' : 'Avoid (Red)');
+
+  overlay.innerHTML = `
+    <div class="box ${boxClass}">
+      <div class="whyEmoji">${food.emoji}</div>
+      <div class="result-tag ${tagClass}">${tagText}</div>
+      <h2>${food.name} belongs in: ${zoneLabel}</h2>
+      <p><b>Why?</b> ${food.why}</p>
+      <button onclick="closeWhyPopup(this)">Next Food ▶</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function closeWhyPopup(btn){
+  btn.closest('.overlay').remove();
+  currentIndex++;
+  switchTeam();
+  loadCard();
+}
+
+function showEnd(){
+  const winner = scores.A === scores.B ? "It's a tie — great job spotting healthy food!" :
+    (scores.A > scores.B ? "🏆 Team A wins!" : "🏆 Team B wins!");
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="box final-box">
+      <h2>All Sorted! 🎉</h2>
+      <p>Team A: <b>${scores.A}</b> &nbsp;|&nbsp; Team B: <b>${scores.B}</b></p>
+      <p style="font-size:18px; font-weight:800; color:#7a3b0a;">${winner}</p>
+      <p style="font-size:13px; color:#8a7a52;">Remember: eat green foods often, yellow foods sometimes, and say no to red foods!</p>
+      <button onclick="resetGame(); this.closest('.overlay').remove();">Play Again</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  launchConfetti();
+}
+
+function launchConfetti(){
+  const colors = ['#e53935','#f4b400','#43a047','#4fc3f7','#9575cd'];
+  for(let i=0;i<70;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${2+Math.random()*1.5}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+const styleTag = document.createElement('style');
+styleTag.textContent = `@keyframes fall{ to { transform: translateY(105vh) rotate(360deg); opacity:0.9; } }`;
+document.head.appendChild(styleTag);
+
+function resetGame(){
+  deck = shuffle(FOODS);
+  currentIndex = 0;
+  scores = { A:0, B:0 };
+  activeTeam = "A";
+  document.querySelectorAll('.zone-collected').forEach(el => el.innerHTML = '');
+  updateScoreboard();
+  loadCard();
+}
+
+let dragging = false;
+let dragBusy = false;
+let offsetX = 0, offsetY = 0;
+
+function onPointerDown(e){
+  if(dragBusy) return;
+  const card = document.getElementById('currentCard');
+  dragging = true;
+  card.classList.add('dragging');
+  const rect = card.getBoundingClientRect();
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+  card.style.position = 'fixed';
+  card.style.left = rect.left + 'px';
+  card.style.top = rect.top + 'px';
+  card.style.margin = '0';
+  card.setPointerCapture(e.pointerId);
+}
+
+function onPointerMove(e){
+  if(!dragging) return;
+  const card = document.getElementById('currentCard');
+  card.style.left = (e.clientX - offsetX) + 'px';
+  card.style.top = (e.clientY - offsetY) + 'px';
+
+  document.querySelectorAll('.zone').forEach(zone=>{
+    const r = zone.getBoundingClientRect();
+    const over = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    zone.classList.toggle('hover', over);
+  });
+}
+
+function onPointerUp(e){
+  if(!dragging) return;
+  dragging = false;
+  const card = document.getElementById('currentCard');
+  card.classList.remove('dragging');
+
+  let dropped = null;
+  document.querySelectorAll('.zone').forEach(zone=>{
+    const r = zone.getBoundingClientRect();
+    const over = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    zone.classList.remove('hover');
+    if(over) dropped = zone.dataset.zone;
+  });
+
+  if(dropped){
+    dragBusy = true;
+    handleDrop(dropped);
+    setTimeout(()=>{ dragBusy = false; }, 300);
+  } else {
+    card.style.transition = 'left .25s ease, top .25s ease';
+    card.style.left = '';
+    card.style.top = '';
+    card.style.position = 'relative';
+    setTimeout(()=>{ card.style.transition=''; }, 260);
+  }
+}
+
+document.getElementById('currentCard').addEventListener('pointerdown', onPointerDown);
+window.addEventListener('pointermove', onPointerMove);
+window.addEventListener('pointerup', onPointerUp);
+
+resetGame();
+</script>
+</body>
+</html>

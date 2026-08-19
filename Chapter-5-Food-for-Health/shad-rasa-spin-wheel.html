@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shad Rasa Spin Wheel — Class 4 TWAU</title>
+<style>
+  :root{
+    --sweet:#ff6fa5;
+    --sour:#ffd23f;
+    --salty:#4fc3f7;
+    --pungent:#ff5e3a;
+    --bitter:#4caf50;
+    --astringent:#9575cd;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+    --gold:#c9922e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI', 'Trebuchet MS', sans-serif;
+    background: radial-gradient(circle at 20% 10%, var(--bg2), var(--bg1) 60%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:18px 12px 40px;
+  }
+  h1{
+    font-size:clamp(24px,3.6vw,40px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+    text-shadow:1px 1px 0 #fff8ec;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(13px,1.6vw,18px);
+    color:#6b5a3a;
+    margin-bottom:14px;
+  }
+  .layout{
+    display:flex;
+    gap:28px;
+    width:100%;
+    max-width:1200px;
+    align-items:flex-start;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .wheel-area{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+  }
+  .wheel-wrap{
+    position:relative;
+    width:min(58vw, 460px);
+    height:min(58vw, 460px);
+  }
+  #wheelCanvas{
+    width:100%;
+    height:100%;
+    display:block;
+    filter:drop-shadow(0 10px 22px rgba(90,60,10,0.35));
+  }
+  .pointer{
+    position:absolute;
+    top:-6px;
+    left:50%;
+    transform:translateX(-50%);
+    width:0;
+    height:0;
+    border-left:18px solid transparent;
+    border-right:18px solid transparent;
+    border-top:32px solid #7a3b0a;
+    z-index:5;
+    filter:drop-shadow(0 3px 3px rgba(0,0,0,0.3));
+  }
+  .hub{
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    width:17%;
+    height:17%;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff3d0, var(--gold) 70%);
+    border:4px solid #8a5a1a;
+    box-shadow:0 4px 10px rgba(0,0,0,0.35) inset, 0 4px 8px rgba(0,0,0,0.3);
+    z-index:4;
+  }
+  #spinBtn{
+    font-size:20px;
+    font-weight:700;
+    padding:14px 40px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 6px 0 #a4560a, 0 10px 16px rgba(0,0,0,0.25);
+    transition:transform .08s ease;
+    letter-spacing:0.5px;
+  }
+  #spinBtn:active{transform:translateY(4px); box-shadow:0 2px 0 #a4560a, 0 4px 8px rgba(0,0,0,0.25);}
+  #spinBtn:disabled{opacity:0.55; cursor:not-allowed;}
+
+  .side-panel{
+    flex:1 1 340px;
+    max-width:420px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .card h2{
+    margin:0 0 8px;
+    font-size:18px;
+    color:#7a3b0a;
+  }
+  #resultBox{
+    min-height:150px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    gap:6px;
+  }
+  #resultTaste{
+    font-size:28px;
+    font-weight:800;
+  }
+  #resultHindi{
+    font-size:15px;
+    color:#8a6f3d;
+    font-style:italic;
+    margin-bottom:4px;
+  }
+  #resultFoods{
+    font-size:16px;
+    line-height:1.5;
+  }
+  #resultFoods b{color:#7a3b0a;}
+  .placeholder{
+    color:#b3a685;
+    font-size:15px;
+  }
+
+  .score-row{
+    display:flex;
+    gap:10px;
+  }
+  .team{
+    flex:1;
+    background:#fff;
+    border-radius:12px;
+    border:2px solid #f0dcb4;
+    padding:10px;
+    text-align:center;
+  }
+  .team h3{margin:0 0 6px; font-size:15px; color:#7a3b0a;}
+  .team .pts{font-size:26px; font-weight:800;}
+  .team-buttons{display:flex; gap:6px; justify-content:center; margin-top:8px;}
+  .team-buttons button{
+    border:none;
+    border-radius:8px;
+    padding:6px 10px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:14px;
+  }
+  .plus{background:#c8e6c9; color:#1b5e20;}
+  .minus{background:#ffcdd2; color:#b71c1c;}
+
+  .progress-track{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-top:4px;
+  }
+  .chip{
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:700;
+    color:#fff;
+    opacity:0.35;
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  .chip.done{opacity:1; transform:scale(1.05);}
+
+  .instructions{
+    font-size:13.5px;
+    line-height:1.55;
+    color:#5a4a2e;
+  }
+  .instructions li{margin-bottom:4px;}
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    align-self:center;
+  }
+
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:10px;height:14px;
+    border-radius:2px;
+    z-index:50;
+    pointer-events:none;
+  }
+
+  @media (max-width:700px){
+    .layout{flex-direction:column; align-items:center;}
+    .side-panel{max-width:92vw;}
+  }
+</style>
+</head>
+<body>
+
+  <h1>🍽️ Shad Rasa — The Six Tastes Wheel</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health</div>
+
+  <div class="layout">
+    <div class="wheel-area">
+      <div class="wheel-wrap">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas" width="600" height="600"></canvas>
+        <div class="hub"></div>
+      </div>
+      <button id="spinBtn">🎡 SPIN THE WHEEL</button>
+      <div class="progress-track" id="progressTrack"></div>
+    </div>
+
+    <div class="side-panel">
+      <div class="card" id="resultCard">
+        <h2>Result</h2>
+        <div id="resultBox">
+          <div class="placeholder">Tap "Spin the Wheel" to discover a taste! 🌀</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🏆 Team Score</h2>
+        <div class="score-row">
+          <div class="team">
+            <h3>Team A</h3>
+            <div class="pts" id="ptsA">0</div>
+            <div class="team-buttons">
+              <button class="plus" onclick="changeScore('A',1)">+1</button>
+              <button class="minus" onclick="changeScore('A',-1)">-1</button>
+            </div>
+          </div>
+          <div class="team">
+            <h3>Team B</h3>
+            <div class="pts" id="ptsB">0</div>
+            <div class="team-buttons">
+              <button class="plus" onclick="changeScore('B',1)">+1</button>
+              <button class="minus" onclick="changeScore('B',-1)">-1</button>
+            </div>
+          </div>
+        </div>
+        <button class="reset-link" onclick="resetGame()">↺ Reset scores &amp; wheel</button>
+      </div>
+
+      <div class="card">
+        <h2>👩‍🏫 How to Play</h2>
+        <ul class="instructions">
+          <li>Teams take turns spinning the wheel.</li>
+          <li>When it stops, read the taste and its example foods aloud.</li>
+          <li>The spinning team names <b>one more food</b> with that same taste — if correct, tap <b>+1</b> for their team.</li>
+          <li>Try to land on all 6 tastes at least once — watch the chips below the wheel light up!</li>
+          <li>Ayurveda calls these six tastes <b>Shad Rasa</b> — a balanced meal includes a bit of all six.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+<script>
+const TASTES = [
+  { name:"Sweet", hindi:"मीठा (Meetha)", color:getComputedStyle(document.documentElement).getPropertyValue('--sweet'), foods:["Jaggery","Honey","Banana","Sugarcane"] },
+  { name:"Sour", hindi:"खट्टा (Khatta)", color:getComputedStyle(document.documentElement).getPropertyValue('--sour'), foods:["Tamarind","Lemon","Curd","Amla"] },
+  { name:"Salty", hindi:"नमकीन (Namkeen)", color:getComputedStyle(document.documentElement).getPropertyValue('--salty'), foods:["Salt","Papad","Pickle","Namkeen mix"] },
+  { name:"Pungent", hindi:"तीखा (Teekha)", color:getComputedStyle(document.documentElement).getPropertyValue('--pungent'), foods:["Green chilli","Ginger","Pepper","Mustard"] },
+  { name:"Bitter", hindi:"कड़वा (Karva)", color:getComputedStyle(document.documentElement).getPropertyValue('--bitter'), foods:["Neem","Karela (bitter gourd)","Fenugreek leaves","Turmeric"] },
+  { name:"Astringent", hindi:"कसैला (Kasaila)", color:getComputedStyle(document.documentElement).getPropertyValue('--astringent'), foods:["Raw mango","Pomegranate skin","Banana (raw)","Guava"] },
+];
+
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+const R = canvas.width/2;
+const segAngle = (2*Math.PI)/TASTES.length;
+let currentRotation = 0;
+let spinning = false;
+const visited = new Set();
+
+function drawWheel(rotation){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.translate(R,R);
+  ctx.rotate(rotation);
+  TASTES.forEach((t,i)=>{
+    const start = i*segAngle;
+    const end = start+segAngle;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,R-6,start,end);
+    ctx.closePath();
+    ctx.fillStyle = t.color.trim();
+    ctx.fill();
+    ctx.strokeStyle="#fffdf5";
+    ctx.lineWidth=4;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.rotate(start+segAngle/2);
+    ctx.textAlign="right";
+    ctx.fillStyle="#ffffff";
+    ctx.font="bold 26px 'Segoe UI', sans-serif";
+    ctx.shadowColor="rgba(0,0,0,0.35)";
+    ctx.shadowBlur=4;
+    ctx.fillText(t.name, R-30, 8);
+    ctx.restore();
+  });
+  ctx.restore();
+}
+
+function buildProgressChips(){
+  const track = document.getElementById('progressTrack');
+  track.innerHTML='';
+  TASTES.forEach(t=>{
+    const chip = document.createElement('div');
+    chip.className='chip';
+    chip.id='chip-'+t.name;
+    chip.style.background = t.color.trim();
+    chip.textContent = t.name;
+    track.appendChild(chip);
+  });
+}
+
+function markVisited(name){
+  visited.add(name);
+  const chip = document.getElementById('chip-'+name);
+  if(chip) chip.classList.add('done');
+  if(visited.size === TASTES.length){
+    launchConfetti();
+  }
+}
+
+function easeOutCubic(t){ return 1 - Math.pow(1-t,3); }
+
+function spin(){
+  if(spinning) return;
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+
+  const targetIndex = Math.floor(Math.random()*TASTES.length);
+  const extraSpins = 5 + Math.floor(Math.random()*2); // 5-6 full turns
+  // pointer is at top (angle = -PI/2 relative to standard canvas rotation start at 0 = 3 o'clock)
+  // segment i center angle (before rotation) = i*segAngle + segAngle/2, measured from 3 o'clock clockwise
+  // we want that center to land at -90deg (top) after rotation
+  const centerAngle = targetIndex*segAngle + segAngle/2;
+  const targetRotation = extraSpins*2*Math.PI + ( (3*Math.PI/2) - centerAngle );
+
+  const duration = 3600;
+  const startTime = performance.now();
+  const startRotation = currentRotation;
+  const delta = targetRotation - (startRotation % (2*Math.PI));
+
+  function animate(now){
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed/duration, 1);
+    const eased = easeOutCubic(t);
+    const rotationNow = startRotation + delta*eased;
+    drawWheel(rotationNow);
+    if(t < 1){
+      requestAnimationFrame(animate);
+    } else {
+      currentRotation = rotationNow % (2*Math.PI);
+      spinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      showResult(targetIndex);
+      markVisited(TASTES[targetIndex].name);
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function showResult(index){
+  const t = TASTES[index];
+  const box = document.getElementById('resultBox');
+  box.innerHTML = `
+    <div id="resultTaste" style="color:${t.color.trim()}">${t.name}</div>
+    <div id="resultHindi">${t.hindi}</div>
+    <div id="resultFoods"><b>Examples:</b> ${t.foods.join(", ")}</div>
+    <div class="placeholder" style="margin-top:6px;">Now name ONE more food with this taste! 🙋</div>
+  `;
+}
+
+function changeScore(team, delta){
+  const el = document.getElementById('pts'+team);
+  let val = parseInt(el.textContent,10) + delta;
+  if(val < 0) val = 0;
+  el.textContent = val;
+}
+
+function resetGame(){
+  document.getElementById('ptsA').textContent = 0;
+  document.getElementById('ptsB').textContent = 0;
+  visited.clear();
+  buildProgressChips();
+  currentRotation = 0;
+  drawWheel(0);
+  document.getElementById('resultBox').innerHTML = '<div class="placeholder">Tap "Spin the Wheel" to discover a taste! 🌀</div>';
+}
+
+function launchConfetti(){
+  const colors = TASTES.map(t=>t.color.trim());
+  for(let i=0;i<60;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${2+Math.random()*1.5}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+const styleTag = document.createElement('style');
+styleTag.textContent = `@keyframes fall{ to { transform: translateY(105vh) rotate(360deg); opacity:0.9; } }`;
+document.head.appendChild(styleTag);
+
+document.getElementById('spinBtn').addEventListener('click', spin);
+buildProgressChips();
+drawWheel(0);
+</script>
+</body>
+</html>

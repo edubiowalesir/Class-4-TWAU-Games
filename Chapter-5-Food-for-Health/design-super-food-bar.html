@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Your Own Super Food Bar — Class 4 TWAU</title>
+<style>
+  :root{
+    --bodybuild:#e0563a;
+    --energy:#f0a93a;
+    --protective:#4caf6d;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+    --gold:#c9922e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:16px;
+  }
+
+  .layout{
+    display:flex;
+    gap:26px;
+    width:100%;
+    max-width:960px;
+    align-items:flex-start;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+
+  .builder{
+    flex:1 1 380px;
+    max-width:440px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .bar-preview-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:18px;
+    padding:18px;
+    box-shadow:0 8px 18px rgba(90,60,10,0.2);
+  }
+  .bar-preview{
+    width:220px;
+    height:90px;
+    border-radius:16px;
+    display:flex;
+    overflow:hidden;
+    box-shadow:0 6px 14px rgba(90,60,10,0.25);
+    border:3px solid #fffdf7;
+    outline:2px solid #e6d3a3;
+  }
+  .bar-preview .slice{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:32px;
+    transition:background .25s ease;
+  }
+  .bar-preview-name{
+    font-size:13px;
+    font-weight:700;
+    color:#6b5a3a;
+    text-align:center;
+    min-height:18px;
+  }
+
+  .ingredient-group{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .ingredient-group .glabel{
+    font-weight:800;
+    font-size:13px;
+    padding:3px 10px;
+    border-radius:20px;
+    color:#fff;
+    display:inline-block;
+    margin-bottom:10px;
+  }
+  .ingredient-group.bodybuild .glabel{ background:var(--bodybuild); }
+  .ingredient-group.energy .glabel{ background:var(--energy); }
+  .ingredient-group.protective .glabel{ background:var(--protective); }
+
+  .current-pick{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .current-pick .pickEmoji{ font-size:30px; }
+  .current-pick .pickName{ font-size:15px; font-weight:700; color:#3a2b1a; }
+
+  input[type=range]{
+    width:100%;
+    accent-color: var(--gold);
+    height:6px;
+  }
+
+  .create-btn{
+    font-size:17px;
+    font-weight:800;
+    padding:13px 20px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 6px 0 #a4560a;
+  }
+  .create-btn:active{ transform:translateY(3px); box-shadow:0 3px 0 #a4560a; }
+
+  .result-panel{
+    flex:1 1 340px;
+    max-width:400px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .result-card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:18px;
+    padding:20px;
+    text-align:center;
+    box-shadow:0 8px 18px rgba(90,60,10,0.2);
+  }
+  .result-card.empty{ color:#b3a685; font-size:14px; }
+  .result-barname{
+    font-size:19px;
+    font-weight:900;
+    color:#7a3b0a;
+    margin:6px 0 2px;
+  }
+  .result-stars{
+    font-size:22px;
+    letter-spacing:2px;
+    margin-bottom:6px;
+  }
+  .result-rating{
+    font-size:14px;
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .score-ring-wrap{
+    display:flex;
+    justify-content:center;
+    margin-bottom:10px;
+  }
+  .stat-bars{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    text-align:left;
+  }
+  .stat-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .stat-row .stat-label{
+    width:70px;
+    font-size:11.5px;
+    font-weight:700;
+    color:#6b5a3a;
+  }
+  .stat-track{
+    flex:1;
+    height:10px;
+    background:#f3ead2;
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .stat-fill{
+    height:100%;
+    border-radius:8px;
+    transition:width .5s ease;
+  }
+  .stat-fill.protein{ background:#e0563a; }
+  .stat-fill.fibre{ background:#8d6e3a; }
+  .stat-fill.vitamins{ background:#4caf6d; }
+  .stat-fill.sugar{ background:#c0392b; }
+
+  .health-tip{
+    margin-top:10px;
+    font-size:12.5px;
+    color:#5a4a2e;
+    background:#fff1cf;
+    border-radius:10px;
+    padding:8px 10px;
+    text-align:left;
+  }
+
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    align-self:center;
+    margin-top:6px;
+  }
+
+  @media (max-width:700px){
+    .layout{ flex-direction:column; align-items:center; }
+    .builder, .result-panel{ max-width:92vw; }
+  }
+</style>
+</head>
+<body>
+
+  <h1>🍫 Design Your Own Super Food Bar</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health</div>
+
+  <div class="layout">
+    <div class="builder">
+      <div class="bar-preview-wrap">
+        <div class="bar-preview" id="barPreview"></div>
+        <div class="bar-preview-name" id="livePreviewName">Adjust the sliders to build your bar!</div>
+      </div>
+
+      <div class="ingredient-group bodybuild">
+        <div class="glabel">💪 Body-Building Ingredient</div>
+        <div class="current-pick">
+          <div class="pickEmoji" id="bbEmoji">🥜</div>
+          <div class="pickName" id="bbName">Peanuts</div>
+        </div>
+        <input type="range" id="bbSlider" min="0" max="4" value="0" step="1">
+      </div>
+
+      <div class="ingredient-group energy">
+        <div class="glabel">⚡ Energy-Giving Ingredient</div>
+        <div class="current-pick">
+          <div class="pickEmoji" id="enEmoji">🌾</div>
+          <div class="pickName" id="enName">Oats</div>
+        </div>
+        <input type="range" id="enSlider" min="0" max="4" value="0" step="1">
+      </div>
+
+      <div class="ingredient-group protective">
+        <div class="glabel">🛡️ Protective Ingredient</div>
+        <div class="current-pick">
+          <div class="pickEmoji" id="prEmoji">🫐</div>
+          <div class="pickName" id="prName">Dried Berries</div>
+        </div>
+        <input type="range" id="prSlider" min="0" max="4" value="0" step="1">
+      </div>
+
+      <button class="create-btn" onclick="createBar()">✨ Create My Super Food Bar!</button>
+      <button class="reset-link" onclick="resetGame()">↺ Start over</button>
+    </div>
+
+    <div class="result-panel">
+      <div class="result-card empty" id="resultCard">
+        Pick one ingredient from each group, then tap "Create My Super Food Bar!" to see your nutrition score and bar name.
+      </div>
+
+      <div class="card">
+        <h2>👩‍🏫 How to Use in Class</h2>
+        <ul>
+          <li>Each slider chooses ONE ingredient from that food group — just like a real balanced snack needs a bit of everything.</li>
+          <li>Try different combinations and see how the nutrition score and star rating change.</li>
+          <li>Challenge: can you design a bar that scores a perfect 5-star "Super Food Bar"?</li>
+          <li>Discuss: which ingredient added the most sugar? Which added the most protein or vitamins?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+<script>
+const GROUPS = {
+  bodybuild: [
+    { name:"Peanuts", emoji:"🥜", protein:9, fibre:2, vitamins:1, sugar:0 },
+    { name:"Almonds", emoji:"🌰", protein:8, fibre:4, vitamins:2, sugar:0 },
+    { name:"Milk Powder", emoji:"🥛", protein:7, fibre:0, vitamins:3, sugar:2 },
+    { name:"Soy Protein", emoji:"🫛", protein:10, fibre:1, vitamins:1, sugar:0 },
+    { name:"Roasted Chana", emoji:"🫘", protein:7, fibre:5, vitamins:1, sugar:0 },
+  ],
+  energy: [
+    { name:"Oats", emoji:"🌾", protein:3, fibre:7, vitamins:2, sugar:1 },
+    { name:"Dates", emoji:"🌴", protein:1, fibre:5, vitamins:2, sugar:6 },
+    { name:"Honey", emoji:"🍯", protein:0, fibre:0, vitamins:1, sugar:8 },
+    { name:"Dried Banana", emoji:"🍌", protein:1, fibre:3, vitamins:3, sugar:5 },
+    { name:"Jaggery", emoji:"🟤", protein:0, fibre:0, vitamins:1, sugar:7 },
+  ],
+  protective: [
+    { name:"Dried Berries", emoji:"🫐", protein:1, fibre:4, vitamins:8, sugar:4 },
+    { name:"Orange Zest", emoji:"🍊", protein:0, fibre:2, vitamins:9, sugar:1 },
+    { name:"Flax Seeds", emoji:"🌱", protein:3, fibre:8, vitamins:4, sugar:0 },
+    { name:"Pumpkin Seeds", emoji:"🎃", protein:5, fibre:5, vitamins:3, sugar:0 },
+    { name:"Spinach Powder", emoji:"🥬", protein:2, fibre:4, vitamins:9, sugar:0 },
+  ],
+};
+
+const SUFFIXES = {
+  super: ["Power Bar", "Champion Bar", "Super Bar"],
+  great: ["Boost Bar", "Energy Bar", "Champion Bar"],
+  good: ["Crunch Bar", "Snack Bar", "Delight Bar"],
+  okay: ["Munch Bar", "Snack Bar"],
+  weak: ["Sugar Bar", "Sweet Treat Bar"],
+};
+
+function shortName(name){
+  return name.split(' ')[0];
+}
+
+function getPick(groupKey, idx){
+  return GROUPS[groupKey][idx];
+}
+
+function updatePreview(){
+  const bb = getPick('bodybuild', +document.getElementById('bbSlider').value);
+  const en = getPick('energy', +document.getElementById('enSlider').value);
+  const pr = getPick('protective', +document.getElementById('prSlider').value);
+
+  document.getElementById('bbEmoji').textContent = bb.emoji;
+  document.getElementById('bbName').textContent = bb.name;
+  document.getElementById('enEmoji').textContent = en.emoji;
+  document.getElementById('enName').textContent = en.name;
+  document.getElementById('prEmoji').textContent = pr.emoji;
+  document.getElementById('prName').textContent = pr.name;
+
+  const preview = document.getElementById('barPreview');
+  preview.innerHTML = `
+    <div class="slice" style="background:var(--bodybuild)">${bb.emoji}</div>
+    <div class="slice" style="background:var(--energy)">${en.emoji}</div>
+    <div class="slice" style="background:var(--protective)">${pr.emoji}</div>
+  `;
+  document.getElementById('livePreviewName').textContent =
+    shortName(bb.name) + ' + ' + shortName(en.name) + ' + ' + shortName(pr.name);
+}
+
+function pickRandom(arr){
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function createBar(){
+  const bb = getPick('bodybuild', +document.getElementById('bbSlider').value);
+  const en = getPick('energy', +document.getElementById('enSlider').value);
+  const pr = getPick('protective', +document.getElementById('prSlider').value);
+
+  const totalProtein = bb.protein + en.protein + pr.protein;
+  const totalFibre = bb.fibre + en.fibre + pr.fibre;
+  const totalVitamins = bb.vitamins + en.vitamins + pr.vitamins;
+  const totalSugar = bb.sugar + en.sugar + pr.sugar;
+
+  const raw = (totalProtein + totalFibre + totalVitamins) * 2 - totalSugar * 3;
+  const pct = Math.max(0, Math.min(100, Math.round((raw / 80) * 100)));
+
+  let tier, stars, ratingLabel, tip;
+  if(pct >= 80){
+    tier = 'super'; stars = '⭐⭐⭐⭐⭐'; ratingLabel = 'Super Food Bar!';
+    tip = "Amazing! Packed with protein, fibre and vitamins with very little sugar — a truly balanced bar.";
+  } else if(pct >= 60){
+    tier = 'great'; stars = '⭐⭐⭐⭐'; ratingLabel = 'Great Health Bar';
+    tip = "A strong, healthy combination! See if a different ingredient could cut down the sugar even more.";
+  } else if(pct >= 40){
+    tier = 'good'; stars = '⭐⭐⭐'; ratingLabel = 'Good Bar';
+    tip = "A decent bar with some good nutrients — but it may be a bit high in sugar or a little low in protein.";
+  } else if(pct >= 20){
+    tier = 'okay'; stars = '⭐⭐'; ratingLabel = 'Okay Bar';
+    tip = "This bar has too much sugar and not enough protein, fibre or vitamins. Try swapping the energy ingredient!";
+  } else {
+    tier = 'weak'; stars = '⭐'; ratingLabel = 'Needs Improvement';
+    tip = "This combination is mostly sugar with very little real nutrition — more like candy than a health bar!";
+  }
+
+  const suffix = pickRandom(SUFFIXES[tier]);
+  const barName = `${shortName(bb.name)}-${shortName(en.name)}-${shortName(pr.name)} ${suffix}`;
+
+  const maxStat = 20;
+  const statPct = (v) => Math.min(100, Math.round((v / maxStat) * 100));
+
+  const resultCard = document.getElementById('resultCard');
+  resultCard.className = 'result-card';
+  resultCard.innerHTML = `
+    <div style="font-size:40px;">${bb.emoji}${en.emoji}${pr.emoji}</div>
+    <div class="result-barname">"${barName}"</div>
+    <div class="result-stars">${stars}</div>
+    <div class="result-rating">${ratingLabel} — ${pct}/100</div>
+    <div class="stat-bars">
+      <div class="stat-row"><div class="stat-label">Protein</div><div class="stat-track"><div class="stat-fill protein" style="width:${statPct(totalProtein)}%"></div></div></div>
+      <div class="stat-row"><div class="stat-label">Fibre</div><div class="stat-track"><div class="stat-fill fibre" style="width:${statPct(totalFibre)}%"></div></div></div>
+      <div class="stat-row"><div class="stat-label">Vitamins</div><div class="stat-track"><div class="stat-fill vitamins" style="width:${statPct(totalVitamins)}%"></div></div></div>
+      <div class="stat-row"><div class="stat-label">Sugar</div><div class="stat-track"><div class="stat-fill sugar" style="width:${statPct(totalSugar)}%"></div></div></div>
+    </div>
+    <div class="health-tip">💡 ${tip}</div>
+  `;
+}
+
+document.getElementById('bbSlider').addEventListener('input', updatePreview);
+document.getElementById('enSlider').addEventListener('input', updatePreview);
+document.getElementById('prSlider').addEventListener('input', updatePreview);
+
+function resetGame(){
+  document.getElementById('bbSlider').value = 0;
+  document.getElementById('enSlider').value = 0;
+  document.getElementById('prSlider').value = 0;
+  updatePreview();
+  const resultCard = document.getElementById('resultCard');
+  resultCard.className = 'result-card empty';
+  resultCard.textContent = 'Pick one ingredient from each group, then tap "Create My Super Food Bar!" to see your nutrition score and bar name.';
+}
+
+updatePreview();
+</script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compare &amp; Contrast Analyzer — Class 4 TWAU</title>
+<style>
+  :root{
+    --bodybuild:#e0563a;
+    --energy:#f0a93a;
+    --protective:#4caf6d;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+    --gold:#c9922e;
+    --colA:#4a86e8;
+    --colB:#e0563a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:16px;
+  }
+
+  .picker-row{
+    display:flex;
+    gap:16px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 20px;
+    margin-bottom:18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:640px;
+    width:100%;
+  }
+  .picker{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    flex:1 1 200px;
+  }
+  .picker label{
+    font-size:12.5px;
+    font-weight:800;
+  }
+  .picker.pickA label{ color:var(--colA); }
+  .picker.pickB label{ color:var(--colB); }
+  .picker select{
+    padding:10px 10px;
+    border-radius:10px;
+    border:2px solid #f0dcb4;
+    font-size:14px;
+    background:#fff;
+    color:#3a2b1a;
+  }
+  .vs-badge{
+    font-size:20px;
+    font-weight:900;
+    color:var(--gold);
+  }
+  .random-btn{
+    font-size:13px;
+    font-weight:700;
+    padding:8px 16px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 4px 0 #a4560a;
+    white-space:nowrap;
+  }
+
+  .main-wrap{
+    width:100%;
+    max-width:700px;
+  }
+
+  .food-heads{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .food-head{
+    background:#fffdf7;
+    border-radius:16px;
+    padding:14px;
+    text-align:center;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    border:3px solid;
+  }
+  .food-head.a{ border-color:var(--colA); }
+  .food-head.b{ border-color:var(--colB); }
+  .food-head .fEmoji{ font-size:40px; }
+  .food-head .fName{ font-size:15px; font-weight:800; margin-top:2px; }
+
+  .compare-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0 8px;
+    margin-bottom:16px;
+  }
+  .compare-table td{
+    padding:10px 12px;
+    background:#fffdf7;
+    font-size:13.5px;
+  }
+  .compare-table tr td:first-child{
+    border-radius:10px 0 0 10px;
+    font-weight:800;
+    color:#7a3b0a;
+    width:110px;
+    text-align:center;
+    background:#f7e9c9;
+  }
+  .compare-table tr td:nth-child(2){ text-align:center; border-left:3px solid var(--colA); }
+  .compare-table tr td:nth-child(3){ text-align:center; border-left:3px solid var(--colB); border-radius:0 10px 10px 0; }
+  .compare-table tr.match td:nth-child(2), .compare-table tr.match td:nth-child(3){ background:#e9f7ee; }
+
+  .group-badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:800;
+    color:#fff;
+    padding:2px 10px;
+    border-radius:20px;
+  }
+  .group-badge.bodybuild{ background:var(--bodybuild); }
+  .group-badge.energy{ background:var(--energy); }
+  .group-badge.protective{ background:var(--protective); }
+
+  .summary-card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    margin-bottom:16px;
+  }
+  .summary-card h2{margin:0 0 8px; font-size:15px; color:#7a3b0a;}
+  .summary-section{ margin-bottom:8px; }
+  .summary-section .stitle{
+    font-size:12.5px;
+    font-weight:800;
+    margin-bottom:4px;
+  }
+  .summary-section.similar .stitle{ color:#2f7a49; }
+  .summary-section.different .stitle{ color:#a1520f; }
+  .summary-section ul{ margin:0; padding-left:20px; font-size:13px; line-height:1.55; color:#5a4a2e; }
+
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:700px;
+    width:100%;
+    margin-top:6px;
+  }
+  .card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+
+  @media (max-width:520px){
+    .food-heads{ grid-template-columns:1fr 1fr; }
+    .compare-table tr td:first-child{ width:80px; font-size:11px; }
+  }
+</style>
+</head>
+<body>
+
+  <h1>🔍 Compare &amp; Contrast Analyzer</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health</div>
+
+  <div class="picker-row">
+    <div class="picker pickA">
+      <label>Food A</label>
+      <select id="selectA"></select>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="picker pickB">
+      <label>Food B</label>
+      <select id="selectB"></select>
+    </div>
+    <button class="random-btn" onclick="randomPair()">🎲 Random Pair</button>
+  </div>
+
+  <div class="main-wrap">
+    <div class="food-heads">
+      <div class="food-head a">
+        <div class="fEmoji" id="headEmojiA">🌾</div>
+        <div class="fName" id="headNameA">Jowar</div>
+      </div>
+      <div class="food-head b">
+        <div class="fEmoji" id="headEmojiB">🍚</div>
+        <div class="fName" id="headNameB">Rice</div>
+      </div>
+    </div>
+
+    <table class="compare-table" id="compareTable"></table>
+
+    <div class="summary-card">
+      <h2>🧠 Analysis</h2>
+      <div class="summary-section similar">
+        <div class="stitle">✅ What's the Same</div>
+        <ul id="similarList"></ul>
+      </div>
+      <div class="summary-section different">
+        <div class="stitle">🔀 What's Different</div>
+        <ul id="differentList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👩‍🏫 How to Use in Class</h2>
+    <ul>
+      <li>Pick any two foods from the whole chapter and see them compared side by side.</li>
+      <li>Green highlighted rows show where the two foods match — a useful pattern-spotting cue.</li>
+      <li>Read the auto-generated "What's the Same" and "What's Different" analysis together as a class.</li>
+      <li>Challenge: find a pair of foods that share 3 or more things in common!</li>
+    </ul>
+  </div>
+
+<script>
+const FOODS = [
+  { name:"Jowar", emoji:"🌾", taste:"Sweet", season:"All Year", group:"energy", dish:"Jowar Roti / Bhakri", method:"Roasted" },
+  { name:"Bajra", emoji:"🌾", taste:"Sweet", season:"Winter", group:"energy", dish:"Bajra Roti", method:"Roasted" },
+  { name:"Ragi", emoji:"🌾", taste:"Astringent", season:"All Year", group:"energy", dish:"Ragi Dosa", method:"Roasted" },
+  { name:"Rice", emoji:"🍚", taste:"Sweet", season:"Monsoon", group:"energy", dish:"Steamed Rice", method:"Boiled" },
+  { name:"Wheat", emoji:"🌾", taste:"Sweet", season:"Winter", group:"energy", dish:"Chapati", method:"Roasted" },
+  { name:"Jaggery (Gur)", emoji:"🟤", taste:"Sweet", season:"Winter", group:"energy", dish:"Til-Gur Laddoo", method:"Raw" },
+  { name:"Honey", emoji:"🍯", taste:"Sweet", season:"All Year", group:"energy", dish:"Honey with Milk", method:"Raw" },
+  { name:"Papad", emoji:"🫓", taste:"Salty", season:"All Year", group:"energy", dish:"Papad with Meal", method:"Roasted" },
+  { name:"Idli", emoji:"🍙", taste:"Neutral", season:"All Year", group:"energy", dish:"Idli Sambhar", method:"Steamed" },
+  { name:"Green Chilli", emoji:"🌶️", taste:"Pungent", season:"All Year", group:"protective", dish:"Green Chutney", method:"Raw" },
+  { name:"Neem", emoji:"🌿", taste:"Bitter", season:"Summer", group:"protective", dish:"Neem Pachadi", method:"Raw" },
+  { name:"Karela (Bitter Gourd)", emoji:"🥒", taste:"Bitter", season:"Summer", group:"protective", dish:"Karela Sabzi", method:"Fried" },
+  { name:"Raw Mango", emoji:"🥭", taste:"Astringent", season:"Summer", group:"protective", dish:"Aam Panna", method:"Raw" },
+  { name:"Amla", emoji:"🫒", taste:"Sour", season:"Winter", group:"protective", dish:"Amla Murabba", method:"Raw" },
+  { name:"Spinach", emoji:"🥬", taste:"Neutral", season:"Winter", group:"protective", dish:"Palak Paneer", method:"Boiled" },
+  { name:"Milk", emoji:"🥛", taste:"Sweet", season:"All Year", group:"bodybuild", dish:"Kheer", method:"Boiled" },
+  { name:"Egg", emoji:"🥚", taste:"Neutral", season:"All Year", group:"bodybuild", dish:"Boiled Egg", method:"Boiled" },
+  { name:"Peanuts", emoji:"🥜", taste:"Neutral", season:"Winter", group:"bodybuild", dish:"Peanut Chikki", method:"Roasted" },
+  { name:"Paneer", emoji:"🧀", taste:"Neutral", season:"All Year", group:"bodybuild", dish:"Paneer Tikka", method:"Grilled" },
+  { name:"Fish", emoji:"🐟", taste:"Neutral", season:"All Year", group:"bodybuild", dish:"Fish Curry", method:"Fried" },
+];
+
+const GROUP_LABELS = { bodybuild:"Body-Building", energy:"Energy-Giving", protective:"Protective" };
+
+function populateSelects(){
+  const selA = document.getElementById('selectA');
+  const selB = document.getElementById('selectB');
+  [selA, selB].forEach(sel => {
+    sel.innerHTML = FOODS.map((f, i) => `<option value="${i}">${f.emoji} ${f.name}</option>`).join('');
+  });
+  selA.value = 0;
+  selB.value = 3;
+}
+
+function badgeFor(groupKey){
+  return `<span class="group-badge ${groupKey}">${GROUP_LABELS[groupKey]}</span>`;
+}
+
+function buildComparison(){
+  const a = FOODS[+document.getElementById('selectA').value];
+  const b = FOODS[+document.getElementById('selectB').value];
+
+  document.getElementById('headEmojiA').textContent = a.emoji;
+  document.getElementById('headNameA').textContent = a.name;
+  document.getElementById('headEmojiB').textContent = b.emoji;
+  document.getElementById('headNameB').textContent = b.name;
+
+  const rows = [
+    { label:"Taste", key:"taste", render:(v)=>v },
+    { label:"Season", key:"season", render:(v)=>v },
+    { label:"Food Group", key:"group", render:(v)=>badgeFor(v) },
+    { label:"Typical Dish", key:"dish", render:(v)=>v },
+    { label:"Cooking Method", key:"method", render:(v)=>v },
+  ];
+
+  const table = document.getElementById('compareTable');
+  table.innerHTML = rows.map(r => {
+    const match = a[r.key] === b[r.key];
+    return `<tr class="${match ? 'match' : ''}">
+      <td>${r.label}</td>
+      <td>${r.render(a[r.key])}</td>
+      <td>${r.render(b[r.key])}</td>
+    </tr>`;
+  }).join('');
+
+  buildSummary(a, b, rows);
+}
+
+function buildSummary(a, b, rows){
+  const similarities = [];
+  const differences = [];
+
+  rows.forEach(r => {
+    if(r.key === 'dish') return;
+    const va = a[r.key];
+    const vb = b[r.key];
+    const labelLower = r.label.toLowerCase();
+    if(va === vb){
+      if(r.key === 'group'){
+        similarities.push(`Both ${a.name} and ${b.name} belong to the same food group: <b>${GROUP_LABELS[va]}</b>.`);
+      } else {
+        similarities.push(`Both ${a.name} and ${b.name} share the same ${labelLower}: <b>${va}</b>.`);
+      }
+    } else {
+      if(r.key === 'group'){
+        differences.push(`${a.name} is a <b>${GROUP_LABELS[va]}</b> food, while ${b.name} is a <b>${GROUP_LABELS[vb]}</b> food.`);
+      } else {
+        differences.push(`${a.name}'s ${labelLower} is <b>${va}</b>, but ${b.name}'s is <b>${vb}</b>.`);
+      }
+    }
+  });
+
+  differences.push(`${a.name} is usually made into <b>${a.dish}</b>, while ${b.name} is usually made into <b>${b.dish}</b>.`);
+
+  const simList = document.getElementById('similarList');
+  const diffList = document.getElementById('differentList');
+
+  simList.innerHTML = similarities.length
+    ? similarities.map(s => `<li>${s}</li>`).join('')
+    : `<li>${a.name} and ${b.name} don't share any of these features — they're quite different foods!</li>`;
+
+  diffList.innerHTML = differences.map(d => `<li>${d}</li>`).join('');
+}
+
+function randomPair(){
+  const selA = document.getElementById('selectA');
+  const selB = document.getElementById('selectB');
+  let idxA = Math.floor(Math.random() * FOODS.length);
+  let idxB = Math.floor(Math.random() * FOODS.length);
+  while(idxB === idxA){
+    idxB = Math.floor(Math.random() * FOODS.length);
+  }
+  selA.value = idxA;
+  selB.value = idxB;
+  buildComparison();
+}
+
+document.getElementById('selectA').addEventListener('change', buildComparison);
+document.getElementById('selectB').addEventListener('change', buildComparison);
+
+populateSelects();
+buildComparison();
+</script>
+</body>
+</html>

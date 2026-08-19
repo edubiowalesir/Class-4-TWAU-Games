@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fix the Unhealthy Meal — Class 4 TWAU</title>
+<style>
+  :root{
+    --unhealthy:#e0563a;
+    --healthy:#4caf6d;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+    --gold:#c9922e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:14px;
+  }
+
+  .scoreboard{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:10px 20px;
+    margin-bottom:14px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .team-score{
+    text-align:center;
+    padding:4px 14px;
+    border-radius:10px;
+    transition:background .25s ease, transform .25s ease;
+  }
+  .team-score .label{font-size:13px; font-weight:700; color:#7a3b0a;}
+  .team-score .val{font-size:24px; font-weight:800;}
+  .team-score.active{background:#fff1cf; transform:scale(1.06);}
+
+  .health-meter-wrap{
+    width:100%;
+    max-width:420px;
+    margin-bottom:14px;
+  }
+  .health-meter-label{
+    display:flex;
+    justify-content:space-between;
+    font-size:12.5px;
+    font-weight:700;
+    color:#6b5a3a;
+    margin-bottom:4px;
+  }
+  .health-meter-track{
+    width:100%;
+    height:18px;
+    background:#f3ead2;
+    border-radius:20px;
+    overflow:hidden;
+    border:2px solid #f0dcb4;
+  }
+  .health-meter-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--unhealthy), #f0a93a, var(--healthy));
+    border-radius:20px;
+    transition:width .5s ease;
+  }
+
+  .layout{
+    display:flex;
+    gap:26px;
+    width:100%;
+    max-width:960px;
+    align-items:flex-start;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+
+  .stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+    flex:1 1 400px;
+  }
+
+  .plate-wrap{
+    position:relative;
+    width:min(70vw, 340px);
+    height:min(70vw, 340px);
+  }
+  #plate{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    border:8px solid #fffdf7;
+    box-shadow:0 10px 22px rgba(90,60,10,0.3), inset 0 0 0 2px #e6d3a3;
+    position:relative;
+    overflow:hidden;
+  }
+  .wedge{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .wedge-icon-wrap{
+    position:absolute;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    transition:transform .3s ease;
+  }
+  .wedge-icon-wrap .icon{ font-size:34px; }
+  .wedge-icon-wrap .fname{
+    font-size:9.5px;
+    font-weight:800;
+    color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,0.4);
+    text-align:center;
+    max-width:70px;
+  }
+  .wedge-icon-wrap.solved{ transform:scale(1.15); }
+  .wedge-icon-wrap.solved .fname{ color:#fff; }
+
+  .tray-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    justify-content:center;
+    max-width:400px;
+  }
+  .tray-chip{
+    width:66px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    cursor:grab;
+    touch-action:none;
+    transition:transform .1s ease, opacity .2s ease;
+  }
+  .tray-chip.dragging{ cursor:grabbing; z-index:30; }
+  .tray-chip .iconBox{
+    width:58px;
+    height:58px;
+    background:#fff;
+    border-radius:14px;
+    border:2px solid #f0dcb4;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    box-shadow:0 4px 8px rgba(0,0,0,0.12);
+    pointer-events:none;
+  }
+  .tray-chip .chipName{
+    font-size:9.5px;
+    font-weight:700;
+    color:#6b5a3a;
+    text-align:center;
+    line-height:1.15;
+    pointer-events:none;
+  }
+  .drag-hint{ font-size:12.5px; color:#8a7a52; font-style:italic; text-align:center; }
+  .tray-left{
+    font-size:12.5px;
+    color:#6b5a3a;
+    font-weight:700;
+    background:#f3ead2;
+    padding:5px 12px;
+    border-radius:20px;
+  }
+
+  .feedback{
+    min-height:22px;
+    font-weight:800;
+    font-size:14px;
+    text-align:center;
+  }
+  .feedback.correct{color:#2f7a49;}
+  .feedback.wrong{color:#c0392b;}
+
+  .side-panel{
+    flex:1 1 280px;
+    max-width:340px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .card ol, .card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+  .card li{margin-bottom:4px;}
+
+  .swap-log{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height:180px;
+    overflow-y:auto;
+  }
+  .swap-log-item{
+    font-size:12px;
+    background:#e9f7ee;
+    border-radius:8px;
+    padding:6px 8px;
+    color:#2f7a49;
+  }
+  .swap-log-empty{
+    font-size:12.5px;
+    color:#b3a685;
+    font-style:italic;
+  }
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    align-self:center;
+    margin-top:6px;
+  }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(58,43,26,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay .box{
+    background:#fffdf7;
+    border-radius:20px;
+    padding:26px 30px;
+    text-align:center;
+    max-width:380px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .overlay .box.explainBox{ border-top:8px solid var(--healthy); }
+  .overlay .swapArrow{ font-size:34px; margin:6px 0; }
+  .overlay h2{margin:4px 0 8px; color:#7a3b0a; font-size:19px;}
+  .overlay p{margin:6px 0; color:#5a4a2e; font-size:14.5px; line-height:1.5;}
+  .overlay .funfact{
+    background:#fff1cf;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:13px;
+    color:#7a3b0a;
+    margin-top:8px;
+  }
+  .overlay button{
+    margin-top:14px;
+    font-size:15px;
+    font-weight:700;
+    padding:9px 24px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:10px;height:14px;
+    border-radius:2px;
+    z-index:150;
+    pointer-events:none;
+  }
+
+  @media (max-width:700px){
+    .layout{ flex-direction:column; align-items:center; }
+    .side-panel{ max-width:92vw; }
+  }
+</style>
+</head>
+<body>
+
+  <h1>🍽️ Fix the Unhealthy Meal</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health</div>
+
+  <div class="scoreboard">
+    <div class="team-score" id="scoreA">
+      <div class="label">Team A</div>
+      <div class="val" id="valA">0</div>
+    </div>
+    <div class="tray-left" id="trayLeft">5 of 8 cards still needed</div>
+    <div class="team-score" id="scoreB">
+      <div class="label">Team B</div>
+      <div class="val" id="valB">0</div>
+    </div>
+  </div>
+
+  <div class="health-meter-wrap">
+    <div class="health-meter-label">
+      <span>🍽️ Plate Health</span>
+      <span id="healthPct">0% healthy</span>
+    </div>
+    <div class="health-meter-track"><div class="health-meter-fill" id="healthFill"></div></div>
+  </div>
+
+  <div class="layout">
+    <div class="stage">
+      <div class="plate-wrap">
+        <div id="plate"></div>
+      </div>
+
+      <div class="tray-grid" id="trayGrid"></div>
+      <div class="drag-hint">👆 Drag any card onto the junk food it should replace</div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="side-panel">
+      <div class="card">
+        <h2>👩‍🏫 How to Play</h2>
+        <ol>
+          <li>The plate starts full of junk food — fries, burger, soft drink, candy and pizza.</li>
+          <li>All 8 swap cards are laid out below the plate — drag any one onto the junk food you think it should replace.</li>
+          <li>Correct swap → the slice turns green, a pop-up explains <b>why</b> it's healthier, and the active team scores <b>+10</b>.</li>
+          <li>Watch out — 3 of the 8 cards are healthy foods that don't fit <em>any</em> slice. Leave those in the tray and try a different card instead!</li>
+          <li>Fix all 5 slices to make the plate 100% healthy.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h2>✅ Swaps Made So Far</h2>
+        <div class="swap-log" id="swapLog">
+          <div class="swap-log-empty">No swaps yet — start dragging!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="reset-link" onclick="resetGame()">↺ Reset the plate</button>
+
+<script>
+const SLOTS = [
+  { start:0, end:72, unhealthy:{name:"French Fries", emoji:"🍟"}, healthy:{name:"Baked Sweet Potato", emoji:"🍠"}, why:"Baking instead of deep frying cuts down unhealthy fat while keeping the potato's natural energy." },
+  { start:72, end:144, unhealthy:{name:"Burger", emoji:"🍔"}, healthy:{name:"Veggie Sandwich", emoji:"🥪"}, why:"A homemade veggie sandwich gives protective nutrients instead of the processed fat and salt in a burger." },
+  { start:144, end:216, unhealthy:{name:"Soft Drink", emoji:"🥤"}, healthy:{name:"Buttermilk", emoji:"🥛"}, why:"Buttermilk cools the body and gives calcium, unlike a soft drink which is just sugar and empty calories." },
+  { start:216, end:288, unhealthy:{name:"Candy", emoji:"🍬"}, healthy:{name:"Apple", emoji:"🍎"}, why:"A fresh apple gives natural sweetness plus fibre and vitamins, unlike candy which is only processed sugar." },
+  { start:288, end:360, unhealthy:{name:"Pizza", emoji:"🍕"}, healthy:{name:"Multigrain Roll", emoji:"🌯"}, why:"A multigrain roll with vegetables gives fibre and nutrients instead of extra cheese, salt and processed toppings." },
+];
+
+const DISTRACTORS = [
+  { name:"Boiled Egg", emoji:"🥚" },
+  { name:"Carrot Sticks", emoji:"🥕" },
+  { name:"Orange", emoji:"🍊" },
+];
+
+let trayItems = [];
+let solvedSlots = new Set();
+let scores = { A:0, B:0 };
+let activeTeam = "A";
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function buildPlate(){
+  const plate = document.getElementById('plate');
+  plate.innerHTML = '';
+  const gradientStops = SLOTS.map(s => `var(--unhealthy) ${s.start}deg ${s.end}deg`).join(', ');
+  plate.style.background = `conic-gradient(${gradientStops})`;
+
+  SLOTS.forEach((slot, idx) => {
+    const midAngle = (slot.start + slot.end) / 2;
+    const rad = (midAngle - 90) * Math.PI / 180;
+    const radius = 0.62;
+    const cx = 50 + Math.cos(rad) * radius * 50;
+    const cy = 50 + Math.sin(rad) * radius * 50;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'wedge-icon-wrap';
+    wrap.id = 'wedge-' + idx;
+    wrap.style.left = cx + '%';
+    wrap.style.top = cy + '%';
+    wrap.style.transform = 'translate(-50%,-50%)';
+    wrap.innerHTML = `<div class="icon" id="wedge-icon-${idx}">${slot.unhealthy.emoji}</div><div class="fname" id="wedge-name-${idx}">${slot.unhealthy.name}</div>`;
+    plate.appendChild(wrap);
+  });
+}
+
+function updatePlateColors(){
+  const gradientStops = SLOTS.map((s, idx) => {
+    const color = solvedSlots.has(idx) ? 'var(--healthy)' : 'var(--unhealthy)';
+    return `${color} ${s.start}deg ${s.end}deg`;
+  }).join(', ');
+  document.getElementById('plate').style.background = `conic-gradient(${gradientStops})`;
+}
+
+function buildTray(){
+  trayItems = shuffle([
+    ...SLOTS.map(s => ({ ...s.healthy, correctSlot: SLOTS.indexOf(s) })),
+    ...DISTRACTORS.map(d => ({ ...d, correctSlot: -1 })),
+  ]);
+  renderTray();
+}
+
+function renderTray(){
+  const grid = document.getElementById('trayGrid');
+  grid.innerHTML = '';
+  trayItems.forEach((item) => {
+    const chip = document.createElement('div');
+    chip.className = 'tray-chip';
+    chip.dataset.name = item.name;
+
+    const iconBox = document.createElement('div');
+    iconBox.className = 'iconBox';
+    iconBox.textContent = item.emoji;
+
+    const nameTag = document.createElement('div');
+    nameTag.className = 'chipName';
+    nameTag.textContent = item.name;
+
+    chip.appendChild(iconBox);
+    chip.appendChild(nameTag);
+    chip.addEventListener('pointerdown', (e) => onPointerDown(e, item, chip));
+    grid.appendChild(chip);
+  });
+  document.getElementById('trayLeft').textContent = (SLOTS.length - solvedSlots.size) + ' of ' + SLOTS.length + ' slices still need fixing';
+}
+
+function updateScoreboard(){
+  document.getElementById('valA').textContent = scores.A;
+  document.getElementById('valB').textContent = scores.B;
+  document.getElementById('scoreA').classList.toggle('active', activeTeam === 'A');
+  document.getElementById('scoreB').classList.toggle('active', activeTeam === 'B');
+}
+
+function switchTeam(){
+  activeTeam = activeTeam === 'A' ? 'B' : 'A';
+  updateScoreboard();
+}
+
+function setFeedback(text, type){
+  const el = document.getElementById('feedback');
+  el.textContent = text;
+  el.className = 'feedback ' + (type || '');
+  if(text){
+    setTimeout(()=>{ if(el.textContent === text){ el.textContent=''; el.className='feedback'; } }, 1500);
+  }
+}
+
+function updateHealthMeter(){
+  const pct = Math.round((solvedSlots.size / SLOTS.length) * 100);
+  document.getElementById('healthFill').style.width = pct + '%';
+  document.getElementById('healthPct').textContent = pct + '% healthy';
+}
+
+function logSwap(slot){
+  const logEl = document.getElementById('swapLog');
+  if(solvedSlots.size === 1) logEl.innerHTML = '';
+  const item = document.createElement('div');
+  item.className = 'swap-log-item';
+  item.textContent = `${slot.unhealthy.emoji} ${slot.unhealthy.name} → ${slot.healthy.emoji} ${slot.healthy.name}`;
+  logEl.appendChild(item);
+}
+
+function wedgeFromPoint(clientX, clientY){
+  const plate = document.getElementById('plate');
+  const r = plate.getBoundingClientRect();
+  const cx = r.left + r.width/2;
+  const cy = r.top + r.height/2;
+  const dx = clientX - cx;
+  const dy = clientY - cy;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const radius = r.width/2;
+  if(dist > radius) return -1;
+
+  let angle = Math.atan2(dy, dx) * 180/Math.PI;
+  let cssAngle = (angle + 90 + 360) % 360;
+
+  for(let i=0;i<SLOTS.length;i++){
+    if(cssAngle >= SLOTS[i].start && cssAngle < SLOTS[i].end) return i;
+  }
+  return -1;
+}
+
+function handleDrop(slotIdx, cardItem, chipEl){
+  if(slotIdx === -1) return false;
+
+  if(solvedSlots.has(slotIdx)){
+    setFeedback('✅ That slice is already fixed!', 'correct');
+    return false;
+  }
+
+  if(cardItem.correctSlot === slotIdx){
+    solvedSlots.add(slotIdx);
+    const slot = SLOTS[slotIdx];
+    document.getElementById('wedge-icon-' + slotIdx).textContent = slot.healthy.emoji;
+    document.getElementById('wedge-name-' + slotIdx).textContent = slot.healthy.name;
+    document.getElementById('wedge-' + slotIdx).classList.add('solved');
+    updatePlateColors();
+    updateHealthMeter();
+    logSwap(slot);
+    scores[activeTeam] += 10;
+    updateScoreboard();
+
+    trayItems = trayItems.filter(it => it !== cardItem);
+    chipEl.remove();
+    document.getElementById('trayLeft').textContent = (SLOTS.length - solvedSlots.size) + ' of ' + SLOTS.length + ' slices still need fixing';
+
+    showExplainPopup(slot);
+    switchTeam();
+
+    if(solvedSlots.size === SLOTS.length){
+      setTimeout(showComplete, 600);
+    }
+    return true;
+  } else {
+    setFeedback('🤔 Not the best fix for this slice — try again!', 'wrong');
+    switchTeam();
+    return false;
+  }
+}
+
+function showExplainPopup(slot){
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="box explainBox">
+      <div class="swapArrow">${slot.unhealthy.emoji} ➜ ${slot.healthy.emoji}</div>
+      <h2>${slot.unhealthy.name} → ${slot.healthy.name}</h2>
+      <div class="funfact">💡 <b>Why this is healthier:</b> ${slot.why}</div>
+      <button onclick="this.closest('.overlay').remove();">Continue ▶</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function showComplete(){
+  const winner = scores.A === scores.B ? "It's a tie — great teamwork fixing the plate!" :
+    (scores.A > scores.B ? "🏆 Team A wins!" : "🏆 Team B wins!");
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="box">
+      <h2>Plate Fully Fixed! 🎉🥗</h2>
+      <p>You swapped every junk food for a healthier choice — 100% healthy plate!</p>
+      <p>Team A: <b>${scores.A}</b> &nbsp;|&nbsp; Team B: <b>${scores.B}</b></p>
+      <p style="font-size:18px; font-weight:800; color:#7a3b0a;">${winner}</p>
+      <button onclick="resetGame(); this.closest('.overlay').remove();">Play Again</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  launchConfetti();
+}
+
+function launchConfetti(){
+  const colors = ['#4caf6d','#e0563a','#f0a93a','#4fc3f7','#9575cd'];
+  for(let i=0;i<70;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${2+Math.random()*1.5}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+const styleTag = document.createElement('style');
+styleTag.textContent = `@keyframes fall{ to { transform: translateY(105vh) rotate(360deg); opacity:0.9; } }`;
+document.head.appendChild(styleTag);
+
+function resetGame(){
+  solvedSlots.clear();
+  scores = { A:0, B:0 };
+  activeTeam = "A";
+  document.getElementById('swapLog').innerHTML = '<div class="swap-log-empty">No swaps yet — start dragging!</div>';
+  updateScoreboard();
+  updateHealthMeter();
+  buildPlate();
+  buildTray();
+  setFeedback('','');
+}
+
+let dragging = false;
+let dragItem = null;
+let dragChip = null;
+let offsetX = 0, offsetY = 0;
+
+function onPointerDown(e, item, chipEl){
+  dragging = true;
+  dragItem = item;
+  dragChip = chipEl;
+  chipEl.classList.add('dragging');
+  const rect = chipEl.getBoundingClientRect();
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+  chipEl.style.position = 'fixed';
+  chipEl.style.left = rect.left + 'px';
+  chipEl.style.top = rect.top + 'px';
+  chipEl.style.margin = '0';
+  chipEl.setPointerCapture(e.pointerId);
+}
+
+function onPointerMove(e){
+  if(!dragging || !dragChip) return;
+  dragChip.style.left = (e.clientX - offsetX) + 'px';
+  dragChip.style.top = (e.clientY - offsetY) + 'px';
+}
+
+function onPointerUp(e){
+  if(!dragging || !dragChip) return;
+  dragging = false;
+  const chipEl = dragChip;
+  const item = dragItem;
+  chipEl.classList.remove('dragging');
+
+  const slotIdx = wedgeFromPoint(e.clientX, e.clientY);
+  const consumed = handleDrop(slotIdx, item, chipEl);
+
+  if(!consumed){
+    chipEl.style.transition = 'left .25s ease, top .25s ease';
+    chipEl.style.left = '';
+    chipEl.style.top = '';
+    chipEl.style.position = 'relative';
+    setTimeout(()=>{ chipEl.style.transition=''; }, 260);
+  }
+  dragChip = null;
+  dragItem = null;
+}
+
+window.addEventListener('pointermove', onPointerMove);
+window.addEventListener('pointerup', onPointerUp);
+
+resetGame();
+</script>
+</body>
+</html>

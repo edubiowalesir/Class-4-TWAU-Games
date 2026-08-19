@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>India Thali Map — Class 4 TWAU</title>
+<style>
+  :root{
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+    --land:#f4dfa0;
+    --landEdge:#c9922e;
+    --gold:#c9922e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:6px;
+  }
+  .note{
+    text-align:center;
+    font-size:11.5px;
+    color:#9a8a63;
+    font-style:italic;
+    margin-bottom:14px;
+  }
+
+  .progress-pill{
+    font-size:13px;
+    color:#6b5a3a;
+    font-weight:700;
+    background:#f3ead2;
+    padding:7px 16px;
+    border-radius:20px;
+    margin-bottom:14px;
+    border:2px solid #f0dcb4;
+  }
+
+  .map-wrap{
+    position:relative;
+    width:min(88vw, 420px);
+    aspect-ratio:380/520;
+    margin-bottom:10px;
+  }
+  #mapSvg{
+    width:100%;
+    height:100%;
+    display:block;
+    filter:drop-shadow(0 10px 18px rgba(90,60,10,0.28));
+  }
+  .india-shape{
+    fill:var(--land);
+    stroke:var(--landEdge);
+    stroke-width:3;
+    stroke-linejoin:round;
+  }
+
+  .pin{
+    position:absolute;
+    width:26px;
+    height:26px;
+    transform:translate(-50%,-100%);
+    cursor:pointer;
+    filter:drop-shadow(0 3px 3px rgba(0,0,0,0.35));
+    transition:transform .15s ease;
+  }
+  .pin:hover{ transform:translate(-50%,-100%) scale(1.15); }
+  .pin svg{ width:100%; height:100%; }
+  .pin .pinFill{ fill:#e0563a; }
+  .pin.visited .pinFill{ fill:#4caf6d; }
+  .pin-pulse{
+    position:absolute;
+    left:50%; top:0;
+    width:26px; height:26px;
+    border-radius:50%;
+    background:rgba(224,86,58,0.35);
+    transform:translate(-50%, -78%);
+    animation:pulse 1.8s ease-out infinite;
+    pointer-events:none;
+  }
+  .pin.visited + .pin-pulse{ display:none; }
+  @keyframes pulse{
+    0%{ transform:translate(-50%,-78%) scale(0.6); opacity:0.7; }
+    100%{ transform:translate(-50%,-78%) scale(1.8); opacity:0; }
+  }
+
+  .legend{
+    display:flex;
+    gap:16px;
+    font-size:12px;
+    color:#6b5a3a;
+    margin-top:6px;
+    margin-bottom:18px;
+  }
+  .legend-item{ display:flex; align-items:center; gap:5px; }
+  .legend-dot{ width:11px; height:11px; border-radius:50%; }
+  .legend-dot.unvisited{ background:#e0563a; }
+  .legend-dot.visited{ background:#4caf6d; }
+
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:640px;
+    width:100%;
+    margin-top:6px;
+  }
+  .card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    margin-top:16px;
+  }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(58,43,26,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay .box{
+    background:#fffdf7;
+    border-radius:20px;
+    padding:24px 28px;
+    text-align:center;
+    max-width:340px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .overlay .stateName{
+    font-size:12.5px;
+    font-weight:700;
+    color:#8a7a52;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  .overlay .dishEmoji{ font-size:48px; margin:6px 0; }
+  .overlay h2{margin:2px 0 8px; color:#7a3b0a; font-size:19px;}
+  .overlay p{margin:6px 0; color:#5a4a2e; font-size:14px; line-height:1.5;}
+  .overlay .funfact{
+    background:#fff1cf;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:12.5px;
+    color:#7a3b0a;
+    margin-top:8px;
+  }
+  .overlay button{
+    margin-top:14px;
+    font-size:15px;
+    font-weight:700;
+    padding:9px 24px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:10px;height:14px;
+    border-radius:2px;
+    z-index:150;
+    pointer-events:none;
+  }
+</style>
+</head>
+<body>
+
+  <h1>🗺️ India Thali Map</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health — Regional Food Diversity</div>
+  <div class="note">(Map reflects India's full territory, including Jammu &amp; Kashmir and Ladakh)</div>
+
+  <div class="progress-pill" id="progressPill">0 of 14 states explored</div>
+
+  <div class="map-wrap">
+    <svg id="mapSvg" viewBox="0 0 380 520" xmlns="http://www.w3.org/2000/svg">
+      <path class="india-shape" d="M127.3,106.4 L132.0,106.7 L143.2,100.6 L149.0,100.4 L153.3,104.5 L156.8,105.0 L157.5,107.1 L159.3,105.3 L161.8,106.5 L157.7,115.7 L151.0,118.7 L152.2,121.2 L149.7,124.0 L143.6,124.4 L146.0,128.4 L143.8,128.6 L144.2,131.4 L146.2,133.6 L149.8,133.7 L148.9,136.0 L151.5,139.8 L144.6,143.9 L141.8,139.6 L137.7,141.6 L142.3,148.0 L142.3,156.1 L146.1,154.4 L150.0,159.5 L155.3,160.1 L159.7,162.6 L159.5,164.8 L169.1,168.8 L161.2,174.7 L157.7,185.7 L171.3,191.2 L172.5,193.9 L179.3,197.2 L189.1,198.8 L189.4,201.4 L196.4,203.5 L197.2,201.7 L202.9,203.3 L206.3,201.3 L211.9,203.4 L212.1,206.9 L218.9,210.3 L223.9,208.9 L226.5,212.6 L232.3,212.0 L237.0,214.3 L241.1,212.4 L244.3,215.2 L250.8,213.5 L252.2,215.0 L254.3,210.5 L252.0,206.0 L253.5,196.5 L259.7,194.1 L262.7,197.2 L261.2,200.7 L263.0,204.0 L261.0,205.7 L265.6,209.7 L274.3,211.0 L280.2,208.6 L284.5,210.2 L300.4,209.2 L301.2,204.0 L299.9,201.7 L295.6,201.7 L295.5,198.4 L298.9,198.9 L302.7,196.8 L305.2,198.0 L308.4,195.8 L307.8,193.7 L316.7,187.6 L326.7,184.4 L327.1,181.8 L331.0,180.1 L338.6,182.8 L348.0,179.0 L351.0,181.3 L349.6,183.2 L351.3,182.3 L354.9,186.8 L352.2,189.5 L353.3,190.4 L355.9,188.2 L358.4,191.3 L363.6,193.1 L364.0,195.4 L358.0,200.2 L360.9,206.3 L355.8,203.0 L350.1,204.1 L337.3,212.0 L337.7,218.5 L331.1,226.5 L332.1,232.0 L325.4,245.0 L315.6,242.2 L316.2,253.5 L313.2,254.5 L314.1,263.8 L310.5,267.7 L308.1,265.1 L307.8,266.8 L306.9,267.2 L303.1,246.5 L299.2,246.3 L299.4,249.4 L296.9,251.5 L297.8,254.0 L295.2,255.8 L292.7,251.7 L292.0,253.8 L289.7,247.8 L292.3,241.9 L294.8,242.3 L296.7,240.2 L298.6,241.5 L298.8,239.1 L301.7,238.2 L302.5,232.4 L305.7,232.7 L304.8,230.9 L300.5,229.0 L281.2,229.5 L274.0,227.7 L274.6,220.0 L272.1,216.5 L270.9,219.7 L268.3,219.2 L265.1,214.6 L262.9,214.5 L264.6,216.5 L260.1,216.2 L261.0,215.2 L256.9,211.9 L256.1,213.6 L258.4,215.0 L254.2,217.6 L253.4,221.5 L258.5,225.2 L261.8,225.0 L264.1,228.1 L257.4,228.7 L256.9,231.9 L253.8,232.0 L252.2,235.2 L260.9,239.8 L261.3,243.4 L258.8,247.3 L261.7,249.1 L260.7,252.0 L264.0,252.5 L262.2,254.9 L265.2,271.3 L262.4,269.6 L262.2,271.5 L260.7,270.8 L261.4,266.8 L259.7,266.1 L258.7,269.2 L258.3,267.6 L257.6,268.2 L257.5,271.6 L255.4,270.1 L255.1,272.2 L254.6,265.2 L254.3,264.7 L252.4,264.3 L254.4,265.7 L249.8,270.6 L241.3,272.5 L239.2,274.8 L238.1,277.2 L239.9,281.0 L238.6,281.5 L241.0,282.2 L237.0,284.4 L236.3,287.3 L237.8,286.7 L232.7,291.4 L216.8,298.0 L206.0,310.9 L184.3,326.0 L184.3,331.7 L171.9,334.9 L168.0,341.9 L164.9,339.7 L160.0,342.3 L157.4,349.4 L161.0,370.8 L158.7,380.5 L154.0,390.0 L155.4,406.2 L148.4,406.8 L143.8,416.0 L147.2,418.4 L136.2,421.6 L133.9,429.2 L127.7,432.8 L121.3,429.5 L115.7,423.0 L117.2,421.8 L115.6,422.6 L113.5,417.4 L107.7,396.5 L99.7,386.0 L95.2,376.1 L91.6,359.4 L78.9,337.8 L75.8,323.0 L76.6,323.4 L77.1,323.0 L72.7,312.0 L74.7,312.9 L74.5,310.8 L72.6,310.5 L72.4,308.2 L73.6,309.0 L71.8,306.3 L72.8,304.8 L73.5,305.3 L73.3,305.6 L73.5,306.0 L73.7,306.1 L73.4,304.3 L72.4,303.9 L74.3,302.4 L73.3,300.4 L73.0,302.2 L71.2,304.0 L70.9,299.1 L72.4,299.3 L70.5,297.2 L72.2,296.4 L70.3,296.4 L69.4,292.8 L72.7,281.7 L70.3,278.9 L71.7,278.5 L70.0,277.8 L71.0,276.7 L69.2,277.9 L70.4,276.5 L68.7,275.3 L72.6,270.8 L68.0,271.0 L70.5,267.3 L67.6,267.3 L68.6,264.5 L70.6,264.9 L72.4,263.8 L65.5,263.3 L63.5,267.4 L65.2,271.4 L62.9,276.5 L47.6,282.6 L39.6,278.2 L25.1,263.3 L26.7,261.3 L28.6,263.9 L39.8,260.5 L43.1,255.4 L40.4,254.4 L34.3,258.2 L28.2,257.0 L26.8,255.6 L26.6,256.1 L26.0,255.3 L25.8,255.6 L25.7,255.2 L25.4,255.4 L23.0,254.1 L21.5,253.0 L22.0,251.5 L19.0,249.0 L23.6,244.6 L19.0,245.3 L18.1,248.1 L16.0,247.7 L18.1,246.4 L16.2,246.4 L18.2,243.5 L22.9,243.5 L23.6,239.4 L38.1,241.1 L44.5,238.1 L46.3,240.6 L51.1,238.4 L49.7,237.9 L50.8,234.9 L45.7,226.5 L45.6,222.9 L41.0,222.7 L39.0,220.1 L39.8,212.8 L31.9,210.5 L32.8,205.2 L42.2,195.4 L44.8,195.4 L48.2,199.0 L60.4,196.0 L66.2,186.3 L72.8,183.3 L78.2,172.3 L85.1,169.3 L84.6,165.9 L93.7,158.9 L91.5,158.2 L93.2,154.7 L91.2,151.3 L92.6,149.2 L101.7,145.2 L98.5,142.2 L93.5,142.0 L93.8,137.9 L89.8,138.7 L81.0,134.9 L80.6,125.4 L78.2,119.6 L87.0,110.7 L82.4,109.5 L82.8,105.9 L78.3,105.9 L75.0,103.6 L75.6,101.9 L68.4,102.0 L68.1,97.5 L74.2,91.9 L83.7,91.6 L81.5,89.3 L85.9,90.3 L93.6,87.2 L96.1,89.0 L99.0,87.9 L102.3,88.8 L102.8,91.6 L106.1,91.3 L109.5,95.0 L117.8,98.3 L119.2,101.9 L125.3,103.6 L127.3,106.4 Z"></path>
+    </svg>
+
+    <div id="pinLayer"></div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot unvisited"></span> Not explored yet</div>
+    <div class="legend-item"><span class="legend-dot visited"></span> Explored</div>
+  </div>
+
+  <div class="card">
+    <h2>👩‍🏫 How to Use in Class</h2>
+    <ul>
+      <li>Tap any pulsing pin on the map to open that state's traditional thali or dish, with a fun fact.</li>
+      <li>Pins turn green once explored — try to find all 14 across India!</li>
+      <li>Ask students to bring information about their own family's regional thali and compare it with the map.</li>
+      <li>This map format can be reused for other chapters and subjects too — festivals, languages, freedom fighters, and more.</li>
+    </ul>
+  </div>
+
+  <button class="reset-link" onclick="resetGame()">↺ Reset exploration</button>
+
+<script>
+const STATES = [
+  { name:"Jammu &amp; Kashmir", x:94.9, y:122.9, emoji:"🍚", dish:"Wazwan Feast (Rogan Josh &amp; Rice)", fact:"A traditional Wazwan can have up to 36 dishes served on a big copper plate called a trami!" },
+  { name:"Punjab", x:100.9, y:161.0, emoji:"🫓", dish:"Sarson da Saag with Makki di Roti", fact:"This winter favourite is traditionally served with a big dollop of white butter on top!" },
+  { name:"Uttar Pradesh", x:167.6, y:209.8, emoji:"🍢", dish:"Awadhi Thali (Kebabs &amp; Biryani)", fact:"Lucknow's Awadhi cuisine is famous for its slow 'dum' style of cooking sealed pots." },
+  { name:"Bihar", x:217.6, y:224.1, emoji:"🥔", dish:"Litti Chokha", fact:"Litti is a baked wheat ball stuffed with roasted gram flour, served with mashed vegetables." },
+  { name:"West Bengal", x:256.9, y:259.8, emoji:"🐟", dish:"Bengali Thali (Fish Curry, Rice &amp; Mishti)", fact:"Bengal is famous for its sweets like Rasgulla and Sandesh, enjoyed after a fish-and-rice meal." },
+  { name:"Odisha", x:225.9, y:287.2, emoji:"🧀", dish:"Chhena Poda with Rice", fact:"Chhena Poda is a baked sweet cheese dessert said to have been invented by accident!" },
+  { name:"Assam", x:296.2, y:218.1, emoji:"🎋", dish:"Assamese Thali (Fish, Rice &amp; Khar)", fact:"Khar is a unique dish made using filtered water from burnt banana peel ash." },
+  { name:"Rajasthan", x:106.8, y:208.6, emoji:"🍞", dish:"Dal Baati Churma", fact:"Baati is a baked bread traditionally cooked over slow desert fire until golden and crisp." },
+  { name:"Gujarat", x:68.7, y:252.7, emoji:"🥟", dish:"Gujarati Thali (Dhokla, Thepla &amp; Kadhi)", fact:"A full Gujarati thali often starts with something sweet, not ends with it!" },
+  { name:"Maharashtra", x:84.2, y:308.6, emoji:"🥮", dish:"Puran Poli with Varan Bhaat", fact:"Puran Poli is a sweet stuffed flatbread made with jaggery and split gram lentils." },
+  { name:"Karnataka", x:116.4, y:368.2, emoji:"🍲", dish:"Bisi Bele Bath", fact:"This one-pot dish mixes rice, lentils, vegetables and spices all cooked together." },
+  { name:"Kerala", x:112.8, y:411.1, emoji:"🍌", dish:"Sadya (Banana Leaf Feast)", fact:"A traditional Sadya can have more than 20 dishes served together on a single banana leaf!" },
+  { name:"Tamil Nadu", x:141.4, y:400.3, emoji:"🍛", dish:"Tamil Thali (Sambar, Rasam &amp; Rice)", fact:"Rasam is often eaten first in the meal, as it is believed to aid digestion." },
+  { name:"Andhra &amp; Telangana", x:139.0, y:321.7, emoji:"🌶️", dish:"Andhra Spicy Thali (Pulihora &amp; Gongura)", fact:"Andhra cuisine is known as one of the spiciest food traditions in all of India!" },
+];
+
+let visited = new Set();
+
+function buildMap(){
+  const layer = document.getElementById('pinLayer');
+  layer.innerHTML = '';
+  STATES.forEach((s, idx) => {
+    const leftPct = (s.x / 380 * 100) + '%';
+    const topPct = (s.y / 520 * 100) + '%';
+
+    const pulse = document.createElement('div');
+    pulse.className = 'pin-pulse';
+    pulse.style.left = leftPct;
+    pulse.style.top = topPct;
+    pulse.id = 'pulse-' + idx;
+
+    const pin = document.createElement('div');
+    pin.className = 'pin';
+    pin.id = 'pin-' + idx;
+    pin.style.left = leftPct;
+    pin.style.top = topPct;
+    pin.innerHTML = `<svg viewBox="0 0 24 24"><path class="pinFill" d="M12 0C7 0 3 4 3 9c0 6.5 9 15 9 15s9-8.5 9-15c0-5-4-9-9-9zm0 12.5A3.5 3.5 0 1 1 12 5.5a3.5 3.5 0 0 1 0 7z"/></svg>`;
+    pin.addEventListener('click', () => openState(idx));
+
+    layer.appendChild(pulse);
+    layer.appendChild(pin);
+  });
+}
+
+function openState(idx){
+  const s = STATES[idx];
+  if(!visited.has(idx)){
+    visited.add(idx);
+    document.getElementById('pin-' + idx).classList.add('visited');
+    document.getElementById('pulse-' + idx).style.display = 'none';
+    updateProgress();
+    if(visited.size === STATES.length){
+      setTimeout(launchConfetti, 400);
+    }
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="box">
+      <div class="stateName">${s.name}</div>
+      <div class="dishEmoji">${s.emoji}</div>
+      <h2>${s.dish}</h2>
+      <div class="funfact">💡 <b>Fun fact:</b> ${s.fact}</div>
+      <button onclick="this.closest('.overlay').remove();">Close &amp; Explore More</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function updateProgress(){
+  document.getElementById('progressPill').textContent = visited.size + ' of ' + STATES.length + ' states explored';
+}
+
+function launchConfetti(){
+  const colors = ['#e0563a','#f0a93a','#4caf6d','#4fc3f7','#9575cd'];
+  for(let i=0;i<70;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${2+Math.random()*1.5}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+const styleTag = document.createElement('style');
+styleTag.textContent = `@keyframes fall{ to { transform: translateY(105vh) rotate(360deg); opacity:0.9; } }`;
+document.head.appendChild(styleTag);
+
+function resetGame(){
+  visited.clear();
+  updateProgress();
+  buildMap();
+}
+
+buildMap();
+updateProgress();
+</script>
+</body>
+</html>

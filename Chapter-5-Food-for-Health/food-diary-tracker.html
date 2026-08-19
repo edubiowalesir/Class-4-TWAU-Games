@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Food Diary Tracker — Class 4 TWAU</title>
+<style>
+  :root{
+    --protective:#4caf6d;
+    --bodybuild:#e0563a;
+    --energy:#f0a93a;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:16px;
+  }
+
+  .wrap{
+    width:100%;
+    max-width:920px;
+  }
+
+  .summary{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    justify-content:center;
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:14px 18px;
+    margin-bottom:16px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  .summary-msg{
+    width:100%;
+    text-align:center;
+    font-weight:800;
+    font-size:15px;
+    margin-bottom:6px;
+  }
+  .summary-msg.good{ color:#2f7a49; }
+  .summary-msg.warn{ color:#c0392b; }
+
+  .group-pill{
+    flex:1 1 160px;
+    max-width:220px;
+    border-radius:14px;
+    padding:10px 12px;
+    text-align:center;
+    color:#fff;
+    font-weight:700;
+    font-size:13px;
+    transition:box-shadow .2s ease, transform .2s ease;
+  }
+  .group-pill .gname{ font-size:13px; }
+  .group-pill .gcount{ font-size:24px; font-weight:800; margin:2px 0; }
+  .group-pill.protective{ background:linear-gradient(160deg,var(--protective),#357a4c); }
+  .group-pill.bodybuild{ background:linear-gradient(160deg,var(--bodybuild),#b8422b); }
+  .group-pill.energy{ background:linear-gradient(160deg,var(--energy),#c07f1a); }
+  .group-pill.missing{
+    background:#fdecea !important;
+    color:#c0392b;
+    border:2px dashed #c0392b;
+    box-shadow:none;
+  }
+  .group-pill.missing .gcount::after{ content:" foods"; font-size:11px; }
+
+  .table-scroll{
+    overflow-x:auto;
+    border-radius:16px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fffdf7;
+    min-width:640px;
+  }
+  th, td{
+    border:1px solid #f0dcb4;
+    padding:8px;
+    text-align:center;
+    vertical-align:top;
+  }
+  thead th{
+    background:#7a3b0a;
+    color:#fff;
+    font-size:13px;
+    padding:10px 8px;
+  }
+  tbody th{
+    background:#f7e9c9;
+    color:#7a3b0a;
+    font-size:13px;
+    white-space:nowrap;
+    width:80px;
+  }
+  .meal-cell{
+    cursor:pointer;
+    min-height:56px;
+    min-width:110px;
+    border-radius:10px;
+    padding:6px;
+    transition:background .15s ease;
+  }
+  .meal-cell:hover{ background:#fff1cf; }
+  .meal-cell .placeholder{
+    font-size:12px;
+    color:#b3a685;
+  }
+  .meal-cell .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:3px;
+    justify-content:center;
+  }
+  .meal-cell .chips span{
+    font-size:18px;
+  }
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    margin-top:16px;
+  }
+
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:700px;
+    width:100%;
+    margin-top:20px;
+  }
+  .card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+
+  /* Modal */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(58,43,26,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+  .modal{
+    background:#fffdf7;
+    border-radius:20px;
+    padding:22px 24px;
+    max-width:460px;
+    width:100%;
+    max-height:85vh;
+    overflow-y:auto;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .modal h2{ margin:0 0 4px; color:#7a3b0a; font-size:18px; text-align:center; }
+  .modal .modalSub{ text-align:center; font-size:12.5px; color:#6b5a3a; margin-bottom:12px; }
+  .foodGroup{ margin-bottom:14px; }
+  .foodGroup .groupLabel{
+    font-weight:800;
+    font-size:13px;
+    padding:4px 10px;
+    border-radius:20px;
+    color:#fff;
+    display:inline-block;
+    margin-bottom:8px;
+  }
+  .foodGroup.protective .groupLabel{ background:var(--protective); }
+  .foodGroup.bodybuild .groupLabel{ background:var(--bodybuild); }
+  .foodGroup.energy .groupLabel{ background:var(--energy); }
+  .chip-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .food-chip{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    width:56px;
+    padding:6px 4px;
+    border-radius:12px;
+    border:2px solid #f0dcb4;
+    background:#fff;
+    cursor:pointer;
+    font-size:24px;
+    transition:background .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .food-chip .fname{ font-size:9px; font-weight:700; color:#6b5a3a; text-align:center; line-height:1.1; }
+  .food-chip.selected{
+    background:#fff1cf;
+    border-color:var(--gold, #c9922e);
+    transform:scale(1.06);
+  }
+  .modal-actions{
+    text-align:center;
+    margin-top:10px;
+  }
+  .modal-actions button{
+    font-size:15px;
+    font-weight:700;
+    padding:9px 26px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+</style>
+</head>
+<body>
+
+  <h1>📔 Digital Food Diary Tracker</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health — "Make a Food Diary"</div>
+
+  <div class="wrap">
+    <div class="summary" id="summary"></div>
+
+    <div class="table-scroll">
+      <table id="diaryTable">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>🍳 Breakfast</th>
+            <th>🍛 Lunch</th>
+            <th>🍽️ Dinner</th>
+          </tr>
+        </thead>
+        <tbody id="diaryBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>👩‍🏫 How to Use</h2>
+      <ul>
+        <li>Click any Breakfast / Lunch / Dinner box to open the food picker for that meal.</li>
+        <li>Tap the foods you ate — tap again to remove — then tap <b>Done</b>.</li>
+        <li>The summary panel above automatically totals how many Body-Building, Energy-Giving and Protective foods you ate this week.</li>
+        <li>Any food group with <b>0 foods</b> is highlighted in red — that's a group you need to eat more of!</li>
+        <li>Fill in a whole week, just like the textbook's food diary, and see if your week is balanced.</li>
+      </ul>
+    </div>
+
+    <button class="reset-link" onclick="resetDiary()">↺ Clear the whole diary</button>
+  </div>
+
+<script>
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const MEALS = ["Breakfast","Lunch","Dinner"];
+
+const FOODS = [
+  { name:"Egg", emoji:"🥚", group:"bodybuild" },
+  { name:"Milk", emoji:"🥛", group:"bodybuild" },
+  { name:"Peanuts", emoji:"🥜", group:"bodybuild" },
+  { name:"Fish", emoji:"🐟", group:"bodybuild" },
+  { name:"Beans", emoji:"🫘", group:"bodybuild" },
+  { name:"Cheese", emoji:"🧀", group:"bodybuild" },
+  { name:"Rice", emoji:"🍚", group:"energy" },
+  { name:"Potato", emoji:"🥔", group:"energy" },
+  { name:"Banana", emoji:"🍌", group:"energy" },
+  { name:"Honey", emoji:"🍯", group:"energy" },
+  { name:"Maize", emoji:"🌽", group:"energy" },
+  { name:"Apple", emoji:"🍎", group:"energy" },
+  { name:"Carrot", emoji:"🥕", group:"protective" },
+  { name:"Orange", emoji:"🍊", group:"protective" },
+  { name:"Tomato", emoji:"🍅", group:"protective" },
+  { name:"Spinach", emoji:"🥬", group:"protective" },
+  { name:"Lemon", emoji:"🍋", group:"protective" },
+  { name:"Cabbage", emoji:"🥦", group:"protective" },
+];
+
+const GROUP_META = {
+  protective: { label:"Protective", cls:"protective" },
+  bodybuild:  { label:"Body-Building", cls:"bodybuild" },
+  energy:     { label:"Energy-Giving", cls:"energy" },
+};
+
+let diary = {};
+let activeCellKey = null;
+
+function cellKey(day, meal){ return day + "-" + meal; }
+
+function initDiary(){
+  diary = {};
+  DAYS.forEach(day => {
+    MEALS.forEach(meal => {
+      diary[cellKey(day, meal)] = [];
+    });
+  });
+}
+
+function buildTable(){
+  const body = document.getElementById('diaryBody');
+  body.innerHTML = '';
+  DAYS.forEach(day => {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th');
+    th.textContent = day;
+    tr.appendChild(th);
+
+    MEALS.forEach(meal => {
+      const td = document.createElement('td');
+      const cellDiv = document.createElement('div');
+      cellDiv.className = 'meal-cell';
+      cellDiv.id = 'cell-' + cellKey(day, meal);
+      cellDiv.addEventListener('click', () => openPicker(day, meal));
+      td.appendChild(cellDiv);
+      tr.appendChild(td);
+    });
+
+    body.appendChild(tr);
+  });
+  refreshAllCells();
+}
+
+function refreshAllCells(){
+  DAYS.forEach(day => {
+    MEALS.forEach(meal => {
+      renderCell(day, meal);
+    });
+  });
+  refreshSummary();
+}
+
+function renderCell(day, meal){
+  const key = cellKey(day, meal);
+  const el = document.getElementById('cell-' + key);
+  const items = diary[key];
+  if(!items || items.length === 0){
+    el.innerHTML = '<div class="placeholder">+ Add food</div>';
+  } else {
+    const chips = items.map(name => {
+      const f = FOODS.find(x => x.name === name);
+      return '<span title="' + name + '">' + (f ? f.emoji : '❓') + '</span>';
+    }).join('');
+    el.innerHTML = '<div class="chips">' + chips + '</div>';
+  }
+}
+
+function openPicker(day, meal){
+  activeCellKey = cellKey(day, meal);
+  const selected = new Set(diary[activeCellKey]);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.id = 'pickerOverlay';
+
+  const groupsHtml = Object.keys(GROUP_META).map(groupKey => {
+    const meta = GROUP_META[groupKey];
+    const chips = FOODS.filter(f => f.group === groupKey).map(f => {
+      const isSel = selected.has(f.name) ? ' selected' : '';
+      return '<div class="food-chip' + isSel + '" data-food="' + f.name + '">' +
+             '<div>' + f.emoji + '</div><div class="fname">' + f.name + '</div></div>';
+    }).join('');
+    return '<div class="foodGroup ' + meta.cls + '">' +
+           '<div class="groupLabel">' + meta.label + '</div>' +
+           '<div class="chip-grid">' + chips + '</div></div>';
+  }).join('');
+
+  overlay.innerHTML =
+    '<div class="modal">' +
+      '<h2>' + day + ' — ' + meal + '</h2>' +
+      '<div class="modalSub">Tap the foods you ate for this meal</div>' +
+      groupsHtml +
+      '<div class="modal-actions"><button id="doneBtn">Done ✅</button></div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelectorAll('.food-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const foodName = chip.dataset.food;
+      if(selected.has(foodName)){
+        selected.delete(foodName);
+        chip.classList.remove('selected');
+      } else {
+        selected.add(foodName);
+        chip.classList.add('selected');
+      }
+    });
+  });
+
+  document.getElementById('doneBtn').addEventListener('click', () => {
+    diary[activeCellKey] = Array.from(selected);
+    renderCell(day, meal);
+    refreshSummary();
+    overlay.remove();
+  });
+
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay){
+      diary[activeCellKey] = Array.from(selected);
+      renderCell(day, meal);
+      refreshSummary();
+      overlay.remove();
+    }
+  });
+}
+
+function refreshSummary(){
+  const counts = { protective:0, bodybuild:0, energy:0 };
+  Object.values(diary).forEach(items => {
+    items.forEach(name => {
+      const f = FOODS.find(x => x.name === name);
+      if(f) counts[f.group]++;
+    });
+  });
+
+  const summaryEl = document.getElementById('summary');
+  const missing = Object.keys(GROUP_META).filter(g => counts[g] === 0);
+  const totalEntries = Object.values(diary).reduce((sum, arr) => sum + arr.length, 0);
+
+  let msgHtml;
+  if(totalEntries === 0){
+    msgHtml = '<div class="summary-msg">🍽️ Start filling in your week — click any meal box below!</div>';
+  } else if(missing.length === 0){
+    msgHtml = '<div class="summary-msg good">🎉 Great balance! Your week includes all three food groups.</div>';
+  } else {
+    const names = missing.map(g => GROUP_META[g].label).join(', ');
+    msgHtml = '<div class="summary-msg warn">⚠️ Missing this week: ' + names + ' — try to add these foods!</div>';
+  }
+
+  const pillsHtml = Object.keys(GROUP_META).map(g => {
+    const meta = GROUP_META[g];
+    const isMissing = counts[g] === 0 && totalEntries > 0;
+    return '<div class="group-pill ' + meta.cls + (isMissing ? ' missing' : '') + '">' +
+           '<div class="gname">' + meta.label + '</div>' +
+           '<div class="gcount">' + counts[g] + '</div>' +
+           '</div>';
+  }).join('');
+
+  summaryEl.innerHTML = msgHtml + pillsHtml;
+}
+
+function resetDiary(){
+  initDiary();
+  buildTable();
+}
+
+initDiary();
+buildTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cooking Method Matching Race — Class 4 TWAU</title>
+<style>
+  :root{
+    --steam:#26a69a;
+    --boil:#4fc3f7;
+    --roast:#ff8a3d;
+    --fry:#e0563a;
+    --bake:#9575cd;
+    --grill:#a1662f;
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:12px;
+  }
+
+  .topbar{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:10px 18px;
+    margin-bottom:16px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .team-score{
+    text-align:center;
+    padding:4px 12px;
+    border-radius:10px;
+    transition:background .25s ease, transform .25s ease;
+  }
+  .team-score .label{font-size:12.5px; font-weight:700; color:#7a3b0a;}
+  .team-score .val{font-size:24px; font-weight:800;}
+  .team-score.active{background:#fff1cf; transform:scale(1.06);}
+  .timer-box{
+    text-align:center;
+    padding:4px 16px;
+    border-radius:10px;
+    background:#eef7ee;
+  }
+  .timer-box .label{font-size:12px; font-weight:700; color:#2f7a49;}
+  .timer-box .val{font-size:26px; font-weight:800; color:#2f7a49;}
+  .timer-box.low .val{color:#c0392b;}
+  .timer-box.low{background:#fdecea;}
+  .start-btn{
+    font-size:15px;
+    font-weight:700;
+    padding:9px 22px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+  .start-btn:active{ transform:translateY(3px); box-shadow:0 2px 0 #a4560a; }
+  .start-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+  .board{
+    width:100%;
+    max-width:980px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+  }
+
+  .tray-area{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+  #currentCard{
+    width:130px;
+    height:150px;
+    background:#ffffff;
+    border-radius:16px;
+    border:3px solid #f0dcb4;
+    box-shadow:0 8px 18px rgba(90,60,10,0.25);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:46px;
+    gap:6px;
+    cursor:grab;
+    touch-action:none;
+    position:relative;
+    z-index:20;
+  }
+  #currentCard.dragging{ cursor:grabbing; box-shadow:0 16px 30px rgba(90,60,10,0.35); }
+  #currentCard .foodName{ font-size:14px; font-weight:700; color:#5a4a2e; }
+  .drag-hint{ font-size:12.5px; color:#8a7a52; font-style:italic; }
+  .cards-left{
+    font-size:12.5px;
+    color:#6b5a3a;
+    font-weight:700;
+    background:#f3ead2;
+    padding:5px 12px;
+    border-radius:20px;
+  }
+
+  .bins{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(130px,180px));
+    gap:14px;
+    justify-content:center;
+    width:100%;
+  }
+  .bin{
+    min-height:110px;
+    border-radius:16px;
+    border:3px dashed;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding:8px 6px;
+    transition:transform .15s ease;
+  }
+  .bin.hover{ transform:scale(1.05); }
+  .bin .binIcon{ font-size:24px; }
+  .bin .binTitle{ font-weight:800; font-size:13px; text-align:center; margin-top:2px; }
+  .bin-collected{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
+    justify-content:center;
+    margin-top:4px;
+  }
+  .bin-collected span{
+    font-size:17px;
+    background:#fff;
+    border-radius:6px;
+    padding:1px 3px;
+    box-shadow:0 2px 4px rgba(0,0,0,0.15);
+  }
+
+  .bin.steam{border-color:var(--steam); background:#e3f6f4;}
+  .bin.boil{border-color:var(--boil); background:#e8f6fd;}
+  .bin.roast{border-color:var(--roast); background:#fdeee1;}
+  .bin.fry{border-color:var(--fry); background:#fdece7;}
+  .bin.bake{border-color:var(--bake); background:#efe9f9;}
+  .bin.grill{border-color:var(--grill); background:#f3e9df;}
+  .bin.steam .binTitle{color:#146b62;}
+  .bin.boil .binTitle{color:#146a94;}
+  .bin.roast .binTitle{color:#a1520f;}
+  .bin.fry .binTitle{color:#a13c22;}
+  .bin.bake .binTitle{color:#5c3d99;}
+  .bin.grill .binTitle{color:#6b4520;}
+
+  .feedback{
+    min-height:24px;
+    font-weight:800;
+    font-size:15px;
+    text-align:center;
+  }
+  .feedback.correct{color:#2f7a49;}
+  .feedback.wrong{color:#c0392b;}
+
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:14px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:560px;
+    width:100%;
+    margin-top:6px;
+  }
+  .card h2{margin:0 0 6px; font-size:16px; color:#7a3b0a;}
+  .card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    margin-top:12px;
+  }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(58,43,26,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay .box{
+    background:#fffdf7;
+    border-radius:20px;
+    padding:28px 32px;
+    text-align:center;
+    max-width:360px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .overlay h2{margin:0 0 6px; color:#7a3b0a; font-size:22px;}
+  .overlay p{margin:6px 0; color:#5a4a2e; font-size:15px;}
+  .overlay button{
+    margin-top:14px;
+    font-size:16px;
+    font-weight:700;
+    padding:10px 26px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:10px;height:14px;
+    border-radius:2px;
+    z-index:150;
+    pointer-events:none;
+  }
+
+  @media (max-width:640px){
+    .bins{ grid-template-columns:repeat(2, minmax(130px,170px)); }
+  }
+</style>
+</head>
+<body>
+
+  <h1>🍳 Cooking Method Matching Race</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health</div>
+
+  <div class="topbar">
+    <div class="team-score" id="scoreA">
+      <div class="label">Team A</div>
+      <div class="val" id="valA">0</div>
+    </div>
+    <div class="timer-box" id="timerBox">
+      <div class="label">TIME LEFT</div>
+      <div class="val" id="timerVal">60</div>
+    </div>
+    <div class="team-score" id="scoreB">
+      <div class="label">Team B</div>
+      <div class="val" id="valB">0</div>
+    </div>
+    <button class="start-btn" id="startBtn" onclick="startRace()">🏁 Start Race</button>
+  </div>
+
+  <div class="board">
+    <div class="tray-area">
+      <div id="currentCard">
+        <div id="cardEmoji">🍙</div>
+        <div class="foodName" id="cardName">Idli</div>
+      </div>
+      <div class="drag-hint">👆 Drag this card into the correct cooking-method bin</div>
+      <div class="cards-left" id="cardsLeft">12 cards left</div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="bins">
+      <div class="bin steam" data-group="steam">
+        <div class="binIcon">♨️</div>
+        <div class="binTitle">Steaming</div>
+        <div class="bin-collected" id="collect-steam"></div>
+      </div>
+      <div class="bin boil" data-group="boil">
+        <div class="binIcon">🫧</div>
+        <div class="binTitle">Boiling</div>
+        <div class="bin-collected" id="collect-boil"></div>
+      </div>
+      <div class="bin roast" data-group="roast">
+        <div class="binIcon">🔥</div>
+        <div class="binTitle">Roasting</div>
+        <div class="bin-collected" id="collect-roast"></div>
+      </div>
+      <div class="bin fry" data-group="fry">
+        <div class="binIcon">🍳</div>
+        <div class="binTitle">Frying</div>
+        <div class="bin-collected" id="collect-fry"></div>
+      </div>
+      <div class="bin bake" data-group="bake">
+        <div class="binIcon">🧁</div>
+        <div class="binTitle">Baking</div>
+        <div class="bin-collected" id="collect-bake"></div>
+      </div>
+      <div class="bin grill" data-group="grill">
+        <div class="binIcon">🍢</div>
+        <div class="binTitle">Grilling</div>
+        <div class="bin-collected" id="collect-grill"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👩‍🏫 How to Race</h2>
+    <ul>
+      <li>Tap <b>Start Race</b> to begin the 60-second countdown.</li>
+      <li>Teams take turns dragging the food card into the bin for its correct cooking method.</li>
+      <li>Correct bin → <b>+10 points</b> for the active team, and the turn passes to the other team.</li>
+      <li>Wrong bin → card bounces back, no points, turn still passes — think fast!</li>
+      <li>Sort all 12 cards before time runs out to win bonus cheers — whoever has more points when the race ends wins!</li>
+    </ul>
+  </div>
+
+  <button class="reset-link" onclick="resetGame()">↺ Reset race</button>
+
+<script>
+const FOODS = [
+  { name:"Idli", emoji:"🍙", group:"steam" },
+  { name:"Momos", emoji:"🥟", group:"steam" },
+  { name:"Rice", emoji:"🍚", group:"boil" },
+  { name:"Boiled Egg", emoji:"🥚", group:"boil" },
+  { name:"Papad", emoji:"🫓", group:"roast" },
+  { name:"Corn", emoji:"🌽", group:"roast" },
+  { name:"Samosa", emoji:"🥠", group:"fry" },
+  { name:"Pakora", emoji:"🍤", group:"fry" },
+  { name:"Cake", emoji:"🍰", group:"bake" },
+  { name:"Bread", emoji:"🍞", group:"bake" },
+  { name:"Kebab", emoji:"🍢", group:"grill" },
+  { name:"Paneer Tikka", emoji:"🧀", group:"grill" },
+];
+
+let deck = [];
+let currentIndex = 0;
+let scores = { A:0, B:0 };
+let activeTeam = "A";
+let timeLeft = 60;
+let timerHandle = null;
+let raceActive = false;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function loadCard(){
+  const card = document.getElementById('currentCard');
+  if(currentIndex >= deck.length){
+    endRace();
+    return;
+  }
+  const f = deck[currentIndex];
+  document.getElementById('cardEmoji').textContent = f.emoji;
+  document.getElementById('cardName').textContent = f.name;
+  document.getElementById('cardsLeft').textContent = (deck.length - currentIndex) + " cards left";
+  card.style.left = '';
+  card.style.top = '';
+  card.style.position = 'relative';
+}
+
+function updateScoreboard(){
+  document.getElementById('valA').textContent = scores.A;
+  document.getElementById('valB').textContent = scores.B;
+  document.getElementById('scoreA').classList.toggle('active', activeTeam === 'A' && raceActive);
+  document.getElementById('scoreB').classList.toggle('active', activeTeam === 'B' && raceActive);
+}
+
+function setFeedback(text, type){
+  const el = document.getElementById('feedback');
+  el.textContent = text;
+  el.className = 'feedback ' + (type || '');
+  if(text){
+    setTimeout(()=>{ if(el.textContent === text){ el.textContent=''; el.className='feedback'; } }, 1200);
+  }
+}
+
+function addToBin(group, emoji){
+  const el = document.getElementById('collect-' + group);
+  const span = document.createElement('span');
+  span.textContent = emoji;
+  el.appendChild(span);
+}
+
+function switchTeam(){
+  activeTeam = activeTeam === 'A' ? 'B' : 'A';
+  updateScoreboard();
+}
+
+function handleDrop(binGroup){
+  if(!raceActive) return;
+  const food = deck[currentIndex];
+  if(binGroup === food.group){
+    scores[activeTeam] += 10;
+    addToBin(food.group, food.emoji);
+    setFeedback('✅ Correct! ' + food.name + ' is ' + labelFor(food.group) + '.', 'correct');
+    currentIndex++;
+    updateScoreboard();
+    switchTeam();
+    setTimeout(loadCard, 350);
+  } else {
+    setFeedback('❌ Not that one — next turn!', 'wrong');
+    switchTeam();
+  }
+}
+
+function labelFor(group){
+  const names = { steam:"steamed", boil:"boiled", roast:"roasted", fry:"fried", bake:"baked", grill:"grilled" };
+  return names[group] || group;
+}
+
+function startRace(){
+  if(raceActive) return;
+  raceActive = true;
+  document.getElementById('startBtn').disabled = true;
+  timeLeft = 60;
+  document.getElementById('timerVal').textContent = timeLeft;
+  updateScoreboard();
+  timerHandle = setInterval(()=>{
+    timeLeft--;
+    document.getElementById('timerVal').textContent = timeLeft;
+    document.getElementById('timerBox').classList.toggle('low', timeLeft <= 10);
+    if(timeLeft <= 0){
+      clearInterval(timerHandle);
+      endRace();
+    }
+  }, 1000);
+}
+
+function endRace(){
+  if(!raceActive) return;
+  raceActive = false;
+  clearInterval(timerHandle);
+  document.getElementById('startBtn').disabled = false;
+  const finishedAll = currentIndex >= deck.length;
+  const winner = scores.A === scores.B ? "It's a tie!" :
+    (scores.A > scores.B ? "🏆 Team A wins!" : "🏆 Team B wins!");
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="box">
+      <h2>${finishedAll ? "Race Complete! 🎉" : "Time's Up! ⏰"}</h2>
+      <p>Team A: <b>${scores.A}</b> &nbsp;|&nbsp; Team B: <b>${scores.B}</b></p>
+      <p style="font-size:18px; font-weight:800; color:#7a3b0a;">${winner}</p>
+      <button onclick="resetGame(); this.closest('.overlay').remove();">Race Again</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  if(finishedAll) launchConfetti();
+}
+
+function launchConfetti(){
+  const colors = ['#26a69a','#4fc3f7','#ff8a3d','#e0563a','#9575cd','#a1662f'];
+  for(let i=0;i<70;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${2+Math.random()*1.5}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+const styleTag = document.createElement('style');
+styleTag.textContent = `@keyframes fall{ to { transform: translateY(105vh) rotate(360deg); opacity:0.9; } }`;
+document.head.appendChild(styleTag);
+
+function resetGame(){
+  clearInterval(timerHandle);
+  raceActive = false;
+  document.getElementById('startBtn').disabled = false;
+  deck = shuffle(FOODS);
+  currentIndex = 0;
+  scores = { A:0, B:0 };
+  activeTeam = "A";
+  timeLeft = 60;
+  document.getElementById('timerVal').textContent = timeLeft;
+  document.getElementById('timerBox').classList.remove('low');
+  document.querySelectorAll('.bin-collected').forEach(el => el.innerHTML = '');
+  updateScoreboard();
+  loadCard();
+  setFeedback('','');
+}
+
+let dragging = false;
+let offsetX = 0, offsetY = 0;
+
+function onPointerDown(e){
+  if(!raceActive) return;
+  const card = document.getElementById('currentCard');
+  dragging = true;
+  card.classList.add('dragging');
+  const rect = card.getBoundingClientRect();
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+  card.style.position = 'fixed';
+  card.style.left = rect.left + 'px';
+  card.style.top = rect.top + 'px';
+  card.style.margin = '0';
+  card.setPointerCapture(e.pointerId);
+}
+
+function onPointerMove(e){
+  if(!dragging) return;
+  const card = document.getElementById('currentCard');
+  card.style.left = (e.clientX - offsetX) + 'px';
+  card.style.top = (e.clientY - offsetY) + 'px';
+
+  document.querySelectorAll('.bin').forEach(bin=>{
+    const r = bin.getBoundingClientRect();
+    const over = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    bin.classList.toggle('hover', over);
+  });
+}
+
+function onPointerUp(e){
+  if(!dragging) return;
+  dragging = false;
+  const card = document.getElementById('currentCard');
+  card.classList.remove('dragging');
+
+  let dropped = null;
+  document.querySelectorAll('.bin').forEach(bin=>{
+    const r = bin.getBoundingClientRect();
+    const over = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    bin.classList.remove('hover');
+    if(over) dropped = bin.dataset.group;
+  });
+
+  if(dropped){
+    handleDrop(dropped);
+  } else {
+    card.style.transition = 'left .25s ease, top .25s ease';
+    card.style.left = '';
+    card.style.top = '';
+    card.style.position = 'relative';
+    setTimeout(()=>{ card.style.transition=''; }, 260);
+  }
+}
+
+document.getElementById('currentCard').addEventListener('pointerdown', onPointerDown);
+window.addEventListener('pointermove', onPointerMove);
+window.addEventListener('pointerup', onPointerUp);
+
+deck = shuffle(FOODS);
+loadCard();
+updateScoreboard();
+</script>
+</body>
+</html>

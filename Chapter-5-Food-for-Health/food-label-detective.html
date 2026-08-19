@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Label Detective — Class 4 TWAU</title>
+<style>
+  :root{
+    --bg1:#fff7e6;
+    --bg2:#e8f7ff;
+    --ink:#3a2b1a;
+    --good:#2f7a49;
+    --bad:#c0392b;
+    --gold:#c9922e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    background: radial-gradient(circle at 15% 8%, var(--bg2), var(--bg1) 62%);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 40px;
+  }
+  h1{
+    font-size:clamp(20px,3.2vw,32px);
+    margin:6px 0 2px;
+    text-align:center;
+    color:#7a3b0a;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:clamp(12px,1.5vw,15px);
+    color:#6b5a3a;
+    margin-bottom:16px;
+  }
+
+  .scoreboard{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:10px 20px;
+    margin-bottom:18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .team-score{
+    text-align:center;
+    padding:4px 14px;
+    border-radius:10px;
+    transition:background .25s ease, transform .25s ease;
+  }
+  .team-score .label{font-size:13px; font-weight:700; color:#7a3b0a;}
+  .team-score .val{font-size:24px; font-weight:800;}
+  .team-score.active{background:#fff1cf; transform:scale(1.06);}
+  .found-pill{
+    font-size:12.5px;
+    color:#6b5a3a;
+    font-weight:700;
+    background:#f3ead2;
+    padding:6px 14px;
+    border-radius:20px;
+  }
+
+  .section-title{
+    font-size:18px;
+    font-weight:800;
+    color:#7a3b0a;
+    margin:6px 0 12px;
+    text-align:center;
+  }
+
+  .labels-row{
+    display:flex;
+    gap:22px;
+    flex-wrap:wrap;
+    justify-content:center;
+    width:100%;
+    max-width:920px;
+    margin-bottom:18px;
+  }
+
+  .label-card{
+    width:340px;
+    background:#fffef8;
+    border-radius:16px;
+    border:3px solid #e6d3a3;
+    box-shadow:0 10px 20px rgba(90,60,10,0.2);
+    overflow:hidden;
+  }
+  .label-banner{
+    padding:14px 16px;
+    color:#fff;
+    text-align:center;
+  }
+  .label-banner .brand{ font-size:19px; font-weight:800; }
+  .label-banner .tag{ font-size:12px; opacity:0.9; }
+  .banner-a{ background:linear-gradient(135deg,#6fae65,#3f7a4a); }
+  .banner-b{ background:linear-gradient(135deg,#e0714a,#a13c22); }
+
+  .label-body{ padding:14px 16px; }
+  .info-row{
+    border:1px dashed #d8c48f;
+    border-radius:10px;
+    padding:9px 10px;
+    margin-bottom:9px;
+    background:#fffdf5;
+  }
+  .info-row .row-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    cursor:pointer;
+  }
+  .info-row .row-name{ font-weight:700; font-size:13px; color:#6b5a3a; }
+  .reveal-btn{
+    font-size:12px;
+    font-weight:700;
+    padding:4px 10px;
+    border-radius:14px;
+    border:none;
+    cursor:pointer;
+    background:#f0dca0;
+    color:#7a3b0a;
+  }
+  .reveal-btn.found{ background:#c8e6c9; color:#1b5e20; }
+  .info-content{
+    margin-top:6px;
+    font-size:12.5px;
+    line-height:1.5;
+    color:#3a2b1a;
+    filter:blur(6px);
+    opacity:0.5;
+    transition:filter .3s ease, opacity .3s ease;
+    max-height:0;
+    overflow:hidden;
+  }
+  .info-row.open .info-content{
+    filter:blur(0);
+    opacity:1;
+    max-height:200px;
+    margin-top:8px;
+  }
+
+  .quiz-card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:18px 20px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:640px;
+    width:100%;
+    margin-top:8px;
+  }
+  .quiz-progress{
+    text-align:center;
+    font-size:13px;
+    color:#6b5a3a;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .quiz-question{
+    font-size:16px;
+    font-weight:700;
+    color:#7a3b0a;
+    margin-bottom:12px;
+    text-align:center;
+  }
+  .quiz-options{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .quiz-opt{
+    text-align:left;
+    padding:10px 14px;
+    border-radius:12px;
+    border:2px solid #f0dcb4;
+    background:#fff;
+    font-size:14px;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .quiz-opt:hover{ background:#fff1cf; }
+  .quiz-opt.correct{ background:#c8e6c9; border-color:var(--good); }
+  .quiz-opt.wrong{ background:#ffcdd2; border-color:var(--bad); }
+  .quiz-explain{
+    margin-top:10px;
+    font-size:13px;
+    color:#5a4a2e;
+    background:#f3ead2;
+    border-radius:10px;
+    padding:8px 10px;
+    display:none;
+  }
+  .quiz-explain.show{ display:block; }
+  .next-q-btn{
+    display:none;
+    margin:12px auto 0;
+    font-size:14px;
+    font-weight:700;
+    padding:8px 20px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 4px 0 #a4560a;
+  }
+  .next-q-btn.show{ display:block; }
+
+  .card{
+    background:#fffdf7;
+    border:2px solid #f0dcb4;
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 14px rgba(120,90,30,0.12);
+    max-width:700px;
+    width:100%;
+    margin-top:20px;
+  }
+  .card h2{margin:0 0 8px; font-size:16px; color:#7a3b0a;}
+  .card ul{margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; color:#5a4a2e;}
+
+  .reset-link{
+    background:none;
+    border:none;
+    color:#8a5a1a;
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    margin-top:16px;
+  }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(58,43,26,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay .box{
+    background:#fffdf7;
+    border-radius:20px;
+    padding:28px 32px;
+    text-align:center;
+    max-width:360px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .overlay h2{margin:0 0 8px; color:#7a3b0a; font-size:22px;}
+  .overlay p{margin:6px 0; color:#5a4a2e; font-size:15px;}
+  .overlay button{
+    margin-top:14px;
+    font-size:16px;
+    font-weight:700;
+    padding:10px 26px;
+    border:none;
+    border-radius:50px;
+    background:linear-gradient(180deg,#ffb454,#e07b1a);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a4560a;
+  }
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:10px;height:14px;
+    border-radius:2px;
+    z-index:150;
+    pointer-events:none;
+  }
+</style>
+</head>
+<body>
+
+  <h1>🕵️ Food Label Detective</h1>
+  <div class="subtitle">Class 4 · TWAU · Unit 3: Health &amp; Well-being · Chapter 5: Food for Health</div>
+
+  <div class="scoreboard">
+    <div class="team-score" id="scoreA">
+      <div class="label">Team A</div>
+      <div class="val" id="valA">0</div>
+    </div>
+    <div class="found-pill" id="foundPill">0 of 8 clues found</div>
+    <div class="team-score" id="scoreB">
+      <div class="label">Team B</div>
+      <div class="val" id="valB">0</div>
+    </div>
+  </div>
+
+  <div class="section-title">🔍 Step 1 — Investigate Both Labels</div>
+  <div class="labels-row" id="labelsRow"></div>
+
+  <div class="section-title">🧠 Step 2 — Detective Quiz</div>
+  <div class="quiz-card">
+    <div class="quiz-progress" id="quizProgress">Question 1 of 5</div>
+    <div class="quiz-question" id="quizQuestion"></div>
+    <div class="quiz-options" id="quizOptions"></div>
+    <div class="quiz-explain" id="quizExplain"></div>
+    <button class="next-q-btn" id="nextQBtn" onclick="nextQuestion()">Next Question ▶</button>
+  </div>
+
+  <div class="card">
+    <h2>👩‍🏫 How to Play</h2>
+    <ul>
+      <li>Click each blurred clue on both labels to reveal ingredients, nutrition facts, dates and the FSSAI number.</li>
+      <li>Compare the two packets like a detective — which one is the healthier choice?</li>
+      <li>Then answer the 5-question quiz below. Teams take turns tapping an answer.</li>
+      <li>Correct answer → <b>+10 points</b> for the active team and a short explanation appears; turn then passes either way.</li>
+    </ul>
+  </div>
+
+  <button class="reset-link" onclick="resetGame()">↺ Reset game</button>
+
+<script>
+const LABELS = [
+  {
+    id: "A",
+    banner: "banner-a",
+    brand: "Sunshine Multigrain Biscuits",
+    tag: "Whole Wheat & Oats",
+    rows: [
+      { name:"Ingredients", content:"Whole wheat flour, rolled oats, jaggery, edible vegetable oil, a pinch of salt." },
+      { name:"Nutrition Facts (per 100g)", content:"Energy: 410 kcal &nbsp;|&nbsp; Sugar: 8g &nbsp;|&nbsp; Fat: 12g &nbsp;|&nbsp; Fibre: 6g" },
+      { name:"Manufacturing &amp; Expiry Date", content:"Mfg: 01 Jul 2026 &nbsp;&nbsp; Exp: 01 Jan 2027" },
+      { name:"FSSAI Licence No.", content:"12345678901234 — a valid registration number showing it is safe and legally sold." },
+    ],
+  },
+  {
+    id: "B",
+    banner: "banner-b",
+    brand: "Choco Crunch Wafers",
+    tag: "Chocolate Filled Wafer",
+    rows: [
+      { name:"Ingredients", content:"Refined flour (maida), sugar, palm oil, cocoa solids, artificial flavour, emulsifiers (E322, E471)." },
+      { name:"Nutrition Facts (per 100g)", content:"Energy: 540 kcal &nbsp;|&nbsp; Sugar: 32g &nbsp;|&nbsp; Fat: 28g &nbsp;|&nbsp; Fibre: 1g" },
+      { name:"Manufacturing &amp; Expiry Date", content:"Mfg: 15 Jun 2026 &nbsp;&nbsp; Exp: 15 Dec 2026" },
+      { name:"FSSAI Licence No.", content:"98765432109876 — a valid registration number showing it is safe and legally sold." },
+    ],
+  },
+];
+
+const QUESTIONS = [
+  {
+    q: "Which packet has MORE sugar per 100g?",
+    options: ["Sunshine Multigrain Biscuits", "Choco Crunch Wafers"],
+    correct: 1,
+    explain: "Choco Crunch Wafers has 32g sugar vs only 8g in Sunshine Biscuits — much higher!",
+  },
+  {
+    q: "Which packet has MORE fibre, which is good for digestion?",
+    options: ["Sunshine Multigrain Biscuits", "Choco Crunch Wafers"],
+    correct: 0,
+    explain: "Sunshine Biscuits has 6g fibre from whole wheat and oats — Choco Crunch has just 1g.",
+  },
+  {
+    q: "What does the FSSAI licence number on a label tell us?",
+    options: ["The price of the packet", "That the food is registered and safe to sell", "The name of the shop that sold it"],
+    correct: 1,
+    explain: "FSSAI licence numbers show that a food business is registered and follows food safety rules.",
+  },
+  {
+    q: "Why should you always check the expiry date before eating packaged food?",
+    options: ["To find out the flavour", "To make sure the food is still safe to eat", "To know the manufacturer's address"],
+    correct: 1,
+    explain: "Eating food after its expiry date can make you unwell — always check before eating!",
+  },
+  {
+    q: "Based on the clues, which packet would be the healthier everyday choice?",
+    options: ["Sunshine Multigrain Biscuits", "Choco Crunch Wafers"],
+    correct: 0,
+    explain: "Sunshine Biscuits has less sugar and fat, and more fibre — a better everyday choice. Choco Crunch is a 'sometimes' treat!",
+  },
+];
+
+let scores = { A:0, B:0 };
+let activeTeam = "A";
+let foundCount = 0;
+let qIndex = 0;
+let answered = false;
+
+function buildLabels(){
+  const row = document.getElementById('labelsRow');
+  row.innerHTML = '';
+  LABELS.forEach(label => {
+    const card = document.createElement('div');
+    card.className = 'label-card';
+
+    const bannerHtml = `<div class="label-banner ${label.banner}">
+      <div class="brand">${label.brand}</div>
+      <div class="tag">${label.tag}</div>
+    </div>`;
+
+    const rowsHtml = label.rows.map((r, i) => `
+      <div class="info-row" id="row-${label.id}-${i}">
+        <div class="row-head" onclick="toggleRow('${label.id}', ${i})">
+          <div class="row-name">🔍 ${r.name}</div>
+          <button class="reveal-btn" id="btn-${label.id}-${i}">Click to reveal</button>
+        </div>
+        <div class="info-content">${r.content}</div>
+      </div>
+    `).join('');
+
+    card.innerHTML = bannerHtml + `<div class="label-body">${rowsHtml}</div>`;
+    row.appendChild(card);
+  });
+}
+
+function toggleRow(labelId, idx){
+  const rowEl = document.getElementById('row-' + labelId + '-' + idx);
+  const btnEl = document.getElementById('btn-' + labelId + '-' + idx);
+  const wasOpen = rowEl.classList.contains('open');
+  rowEl.classList.toggle('open');
+  if(!wasOpen && !btnEl.classList.contains('found')){
+    btnEl.classList.add('found');
+    btnEl.textContent = 'Found ✅';
+    foundCount++;
+    document.getElementById('foundPill').textContent = foundCount + ' of 8 clues found';
+  }
+}
+
+function updateScoreboard(){
+  document.getElementById('valA').textContent = scores.A;
+  document.getElementById('valB').textContent = scores.B;
+  document.getElementById('scoreA').classList.toggle('active', activeTeam === 'A');
+  document.getElementById('scoreB').classList.toggle('active', activeTeam === 'B');
+}
+
+function switchTeam(){
+  activeTeam = activeTeam === 'A' ? 'B' : 'A';
+  updateScoreboard();
+}
+
+function loadQuestion(){
+  answered = false;
+  const q = QUESTIONS[qIndex];
+  document.getElementById('quizProgress').textContent = 'Question ' + (qIndex + 1) + ' of ' + QUESTIONS.length;
+  document.getElementById('quizQuestion').textContent = q.q;
+  const optsEl = document.getElementById('quizOptions');
+  optsEl.innerHTML = '';
+  q.options.forEach((optText, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = optText;
+    btn.addEventListener('click', () => selectAnswer(i));
+    optsEl.appendChild(btn);
+  });
+  document.getElementById('quizExplain').classList.remove('show');
+  document.getElementById('quizExplain').textContent = '';
+  document.getElementById('nextQBtn').classList.remove('show');
+}
+
+function selectAnswer(i){
+  if(answered) return;
+  answered = true;
+  const q = QUESTIONS[qIndex];
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach((btn, idx) => {
+    if(idx === q.correct) btn.classList.add('correct');
+    if(idx === i && i !== q.correct) btn.classList.add('wrong');
+  });
+
+  if(i === q.correct){
+    scores[activeTeam] += 10;
+  }
+  updateScoreboard();
+
+  const explainEl = document.getElementById('quizExplain');
+  explainEl.textContent = '💡 ' + q.explain;
+  explainEl.classList.add('show');
+
+  document.getElementById('nextQBtn').classList.add('show');
+  switchTeam();
+}
+
+function nextQuestion(){
+  qIndex++;
+  if(qIndex >= QUESTIONS.length){
+    showEnd();
+    return;
+  }
+  loadQuestion();
+}
+
+function showEnd(){
+  const winner = scores.A === scores.B ? "It's a tie — great detective work!" :
+    (scores.A > scores.B ? "🏆 Team A wins!" : "🏆 Team B wins!");
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="box">
+      <h2>Case Closed! 🕵️‍♀️🎉</h2>
+      <p>Team A: <b>${scores.A}</b> &nbsp;|&nbsp; Team B: <b>${scores.B}</b></p>
+      <p style="font-size:18px; font-weight:800; color:#7a3b0a;">${winner}</p>
+      <p style="font-size:13px; color:#8a7a52;">Remember: always check the label before choosing what to eat!</p>
+      <button onclick="resetGame(); this.closest('.overlay').remove();">Play Again</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  launchConfetti();
+}
+
+function launchConfetti(){
+  const colors = ['#3f7a4a','#a13c22','#f0a93a','#4fc3f7','#9575cd'];
+  for(let i=0;i<70;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${2+Math.random()*1.5}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+const styleTag = document.createElement('style');
+styleTag.textContent = `@keyframes fall{ to { transform: translateY(105vh) rotate(360deg); opacity:0.9; } }`;
+document.head.appendChild(styleTag);
+
+function resetGame(){
+  scores = { A:0, B:0 };
+  activeTeam = "A";
+  foundCount = 0;
+  qIndex = 0;
+  document.getElementById('foundPill').textContent = '0 of 8 clues found';
+  updateScoreboard();
+  buildLabels();
+  loadQuestion();
+}
+
+resetGame();
+</script>
+</body>
+</html>
