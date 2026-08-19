@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food for Health — Chapter 5 Games | Class 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF6E8;
+    --cream-deep:#F7ECD8;
+    --ink:#2E2620;
+    --ink-soft:#5B5148;
+    --steel:#C9CCD1;
+    --steel-dark:#9EA3AA;
+    --starters:#E1A438;
+    --starters-bg:#FBF0DA;
+    --main:#4F7A4A;
+    --main-bg:#E8F0E4;
+    --sides:#C7472F;
+    --sides-bg:#FBE7E1;
+    --dessert:#8E3B5C;
+    --dessert-bg:#F4E3EC;
+    --radius:18px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Nunito Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:inherit;}
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:56px 0 40px;
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:40px;
+    align-items:center;
+  }
+
+  .eyebrow{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    font-size:13px;
+    color:var(--sides);
+    margin:0 0 10px;
+  }
+
+  h1{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(34px, 5vw, 54px);
+    line-height:1.04;
+    margin:0 0 16px;
+  }
+
+  h1 span{color:var(--starters);}
+
+  .hero p{
+    font-size:17px;
+    line-height:1.6;
+    color:var(--ink-soft);
+    max-width:46ch;
+    margin:0 0 22px;
+  }
+
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 18px;
+  }
+  .legend-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink-soft);
+  }
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .dot.starters{background:var(--starters);}
+  .dot.main{background:var(--main);}
+  .dot.sides{background:var(--sides);}
+  .dot.dessert{background:var(--dessert);}
+
+  /* ---------- THALI SIGNATURE ---------- */
+  .thali-holder{display:flex; justify-content:center;}
+  .thali{width:min(360px, 90%); aspect-ratio:1/1;}
+
+  @media (prefers-reduced-motion: no-preference){
+    .thali .katori{ transition: transform .35s ease; transform-origin:center; }
+    .thali-holder:hover .katori{ transform: scale(1.06); }
+    .thali .rim{ animation: spin 60s linear infinite; transform-origin: 200px 200px; }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+  }
+
+  /* ---------- SECTION NAV ---------- */
+  .course-nav{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:0 0 8px;
+    margin-bottom:36px;
+    border-bottom:2px solid var(--cream-deep);
+  }
+  .course-nav a{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    text-decoration:none;
+    padding:10px 16px;
+    border-radius:999px;
+    color:var(--ink-soft);
+    background:var(--cream-deep);
+  }
+  .course-nav a:hover, .course-nav a:focus-visible{
+    color:var(--cream);
+    background:var(--ink);
+  }
+
+  /* ---------- COURSE SECTIONS ---------- */
+  .course{
+    padding:36px 0 8px;
+    scroll-margin-top:24px;
+  }
+
+  .course-head{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .course-tag{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    padding:6px 12px;
+    border-radius:999px;
+    color:#fff;
+    white-space:nowrap;
+  }
+  .course.starters .course-tag{background:var(--starters);}
+  .course.main .course-tag{background:var(--main);}
+  .course.sides .course-tag{background:var(--sides);}
+  .course.dessert .course-tag{background:var(--dessert);}
+
+  .course-head h2{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:24px;
+    margin:0;
+  }
+
+  .course-head p{
+    margin:4px 0 0;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
+    gap:18px;
+  }
+
+  .card{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    background:#fff;
+    border-radius:var(--radius);
+    padding:22px 22px 20px;
+    text-decoration:none;
+    color:var(--ink);
+    border:1px solid var(--cream-deep);
+    box-shadow:0 1px 0 rgba(46,38,32,.02);
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .card:hover, .card:focus-visible{
+    transform:translateY(-4px);
+    box-shadow:0 14px 28px -14px rgba(46,38,32,.28);
+    outline:none;
+  }
+  .course.starters .card:hover{border-color:var(--starters);}
+  .course.main .card:hover{border-color:var(--main);}
+  .course.sides .card:hover{border-color:var(--sides);}
+  .course.dessert .card:hover{border-color:var(--dessert);}
+
+  .card h3{
+    font-family:'Baloo 2', sans-serif;
+    font-size:18px;
+    font-weight:700;
+    margin:0 0 8px;
+    line-height:1.25;
+  }
+
+  .card p{
+    font-size:14px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    margin:0 0 18px;
+  }
+
+  .play{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .course.starters .play{color:var(--starters);}
+  .course.main .play{color:var(--main);}
+  .course.sides .play{color:var(--sides);}
+  .course.dessert .play{color:var(--dessert);}
+  .play svg{width:14px;height:14px;transition:transform .18s ease;}
+  .card:hover .play svg{transform:translateX(3px);}
+
+  footer{
+    margin-top:60px;
+    padding:26px 0 44px;
+    border-top:2px solid var(--cream-deep);
+    color:var(--ink-soft);
+    font-size:13px;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  footer strong{color:var(--ink);}
+
+  @media (max-width:820px){
+    .hero{grid-template-columns:1fr; padding-top:36px;}
+    .thali{width:250px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Class 4 · The World Around Us</p>
+      <h1>Chapter 5 <span>—</span><br>Food for Health</h1>
+      <p>Fifteen hands-on games for one chapter — sort, build, taste-test and track your way through what makes a meal healthy. Pick a course below and start playing.</p>
+      <div class="legend">
+        <span class="legend-item"><span class="dot starters"></span>Starters</span>
+        <span class="legend-item"><span class="dot main"></span>Main Course</span>
+        <span class="legend-item"><span class="dot sides"></span>Sides</span>
+        <span class="legend-item"><span class="dot dessert"></span>Dessert</span>
+      </div>
+    </div>
+
+    <div class="thali-holder" aria-hidden="true">
+      <svg class="thali" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="200" cy="200" r="196" fill="var(--steel)"/>
+        <circle cx="200" cy="200" r="196" fill="none" stroke="var(--steel-dark)" stroke-width="3" class="rim"/>
+        <circle cx="200" cy="200" r="150" fill="#EDEFF2"/>
+        <circle cx="200" cy="200" r="150" fill="none" stroke="var(--steel-dark)" stroke-width="2"/>
+        <!-- four katoris -->
+        <circle class="katori" cx="200" cy="112" r="46" fill="var(--starters-bg)" stroke="var(--starters)" stroke-width="3"/>
+        <circle class="katori" cx="288" cy="200" r="46" fill="var(--main-bg)" stroke="var(--main)" stroke-width="3"/>
+        <circle class="katori" cx="200" cy="288" r="46" fill="var(--sides-bg)" stroke="var(--sides)" stroke-width="3"/>
+        <circle class="katori" cx="112" cy="200" r="46" fill="var(--dessert-bg)" stroke="var(--dessert)" stroke-width="3"/>
+        <!-- center rice mound -->
+        <circle cx="200" cy="200" r="52" fill="#fff" stroke="var(--steel-dark)" stroke-width="2"/>
+        <circle cx="185" cy="188" r="4" fill="var(--steel)"/>
+        <circle cx="205" cy="195" r="4" fill="var(--steel)"/>
+        <circle cx="195" cy="210" r="4" fill="var(--steel)"/>
+        <circle cx="215" cy="205" r="4" fill="var(--steel)"/>
+        <circle cx="200" cy="178" r="4" fill="var(--steel)"/>
+      </svg>
+    </div>
+  </section>
+
+  <nav class="course-nav" aria-label="Jump to course">
+    <a href="#starters">Starters</a>
+    <a href="#main">Main Course</a>
+    <a href="#sides">Sides</a>
+    <a href="#dessert">Dessert</a>
+  </nav>
+
+  <!-- ================= STARTERS ================= -->
+  <section class="course starters" id="starters">
+    <div class="course-head">
+      <span class="course-tag">Starters</span>
+      <div>
+        <h2>Explore &amp; Discover</h2>
+        <p>Warm up with a bit of food history and geography before the main games begin.</p>
+      </div>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="journey-of-a-grain.html">
+        <div>
+          <h3>Journey of a Grain</h3>
+          <p>Follow a grain of wheat from farm to plate and see every stop along the way.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="millet-explorer-flip-cards.html">
+        <div>
+          <h3>Millet Explorer Flip Cards</h3>
+          <p>Flip cards to discover India's forgotten millets and what makes each one special.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="india-thali-map.html">
+        <div>
+          <h3>India Thali Map</h3>
+          <p>Travel across India and match every state to its classic thali.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="food-label-detective.html">
+        <div>
+          <h3>Food Label Detective</h3>
+          <p>Read food packet labels like a detective and spot the hidden sugar and salt.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ================= MAIN COURSE ================= -->
+  <section class="course main" id="main">
+    <div class="course-head">
+      <span class="course-tag">Main Course</span>
+      <div>
+        <h2>Build &amp; Sort</h2>
+        <p>The hands-on heart of the chapter — put food groups together the right way.</p>
+      </div>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="build-your-thali_2.html">
+        <div>
+          <h3>Build Your Thali</h3>
+          <p>Pick foods from every group and build a plate that keeps you strong.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="food-group-sorting-game.html">
+        <div>
+          <h3>Food Group Sorting Game</h3>
+          <p>Sort foods into their correct groups before time runs out.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="design-super-food-bar.html">
+        <div>
+          <h3>Design a Super Food Bar</h3>
+          <p>Combine ingredients to design a snack bar packed with real nutrition.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="cooking-method-race.html">
+        <div>
+          <h3>Cooking Method Race</h3>
+          <p>Race to match each dish with the cooking method that makes it healthy.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ================= SIDES ================= -->
+  <section class="course sides" id="sides">
+    <div class="course-head">
+      <span class="course-tag">Sides</span>
+      <div>
+        <h2>Think &amp; Decide</h2>
+        <p>Quick-thinking games about comparing, choosing, and spotting what's missing.</p>
+      </div>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="compare-contrast-analyzer.html">
+        <div>
+          <h3>Compare &amp; Contrast Analyzer</h3>
+          <p>Place two meals side by side and work out which one wins on nutrition.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="fix-the-unhealthy-meal.html">
+        <div>
+          <h3>Fix the Unhealthy Meal</h3>
+          <p>Spot what's missing from a meal and swap in better choices.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="what-would-you-cook_1.html">
+        <div>
+          <h3>What Would You Cook?</h3>
+          <p>Pick ingredients from the kitchen and decide what meal you'd cook.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="junk-food-traffic-light.html">
+        <div>
+          <h3>Junk Food Traffic Light</h3>
+          <p>Sort snacks into green, yellow, and red to learn how often to eat them.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="shad-rasa-spin-wheel.html">
+        <div>
+          <h3>Shad Rasa Spin Wheel</h3>
+          <p>Spin the wheel to explore the six tastes every Indian meal should balance.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ================= DESSERT ================= -->
+  <section class="course dessert" id="dessert">
+    <div class="course-head">
+      <span class="course-tag">Dessert</span>
+      <div>
+        <h2>Track &amp; Reflect</h2>
+        <p>Slow down and look back at what you've eaten and planned across a whole day or week.</p>
+      </div>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="food-diary-tracker.html">
+        <div>
+          <h3>Food Diary Tracker</h3>
+          <p>Log a day of meals and see how balanced your plate really was.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+      <a class="card" href="community-kitchen-budget-planner.html">
+        <div>
+          <h3>Community Kitchen Budget Planner</h3>
+          <p>Plan a week of healthy meals for a family without going over budget.</p>
+        </div>
+        <span class="play">Play<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+
+    </div>
+  </section>
+
+  <footer>
+    <span><strong>Class 4</strong> · The World Around Us · Chapter 5: Food for Health</span>
+    <span>15 games</span>
+  </footer>
+
+</div>
+
+</body>
+</html>
